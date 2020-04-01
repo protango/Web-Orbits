@@ -1,0 +1,19 @@
+{
+  "name": "web-orbits",
+  "version": "1.0.0",
+  "description": "An 3D Interactive N-Body simulation that runs in the web",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/protango/Web-Orbits.git"
+  },
+  "author": "Zachary Murray",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/protango/Web-Orbits/issues"
+  },
+  "homepage": "https://github.com/protango/Web-Orbits#readme"
+}
