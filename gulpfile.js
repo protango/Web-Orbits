@@ -20,16 +20,18 @@ gulp.task('styles', () =>
 );
 
 gulp.task('logic', () => {
-    return gulp.src("src/logic/**/*.ts")
+    var tsProject = ts.createProject('src/tsconfig.json');
+    return tsProject.src()
         .pipe(sourcemaps.init())
-        .pipe(ts({target: "ES6", module: "ES6"}))
+        .pipe(tsProject()).js
         .pipe(sourcemaps.write())
         .pipe(gulp.dest('dist/public/logic'))
 });
 
 gulp.task('backend', () => {
-    return gulp.src("server.ts")
-        .pipe(ts({target: "ES6", module: "CommonJS"}))
+    var tsProject = ts.createProject('tsconfig.json');
+    return tsProject.src()
+        .pipe(tsProject()).js
         .pipe(gulp.dest('dist'))
 });
 

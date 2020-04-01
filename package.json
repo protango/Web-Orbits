@@ -25,10 +25,11 @@
   "devDependencies": {
     "@types/express": "^4.17.4",
     "gulp": "^4.0.2",
+    "gulp-browserify": "^0.5.1",
     "gulp-replace": "^1.0.0",
     "gulp-sass": "^4.0.2",
+    "gulp-sourcemaps": "^2.6.5",
     "gulp-typescript": "^6.0.0-alpha.1",
-    "typescript": "^3.8.3",
-    "gulp-sourcemaps": "^2.6.5"
+    "typescript": "^3.8.3"
   }
 }
