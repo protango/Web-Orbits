@@ -4,7 +4,9 @@
   "description": "An 3D Interactive N-Body simulation that runs in the web",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "gulp && node dist/server.js",
+    "dev": "gulp && gulp watch"
   },
   "repository": {
     "type": "git",
@@ -15,5 +17,18 @@
   "bugs": {
     "url": "https://github.com/protango/Web-Orbits/issues"
   },
-  "homepage": "https://github.com/protango/Web-Orbits#readme"
+  "homepage": "https://github.com/protango/Web-Orbits#readme",
+  "dependencies": {
+    "babylonjs": "^4.1.0",
+    "express": "^4.17.1",
+    "gulp-sourcemaps": "^2.6.5"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.4",
+    "gulp": "^4.0.2",
+    "gulp-replace": "^1.0.0",
+    "gulp-sass": "^4.0.2",
+    "gulp-typescript": "^6.0.0-alpha.1",
+    "typescript": "^3.8.3"
+  }
 }
