@@ -6,9 +6,10 @@
       "sourceMap": true,
       "types": [
         "babylonjs"
-      ]
+      ],
+      "jsx": "react-native"
     },
     "include": [
-      "./logic/**/*.ts"
+      "./**/*.ts"
     ]
 }
