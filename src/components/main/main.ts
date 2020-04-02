@@ -1,10 +1,11 @@
-import html from './app.html';
+import html from './main.html';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh } from "babylonjs";
+import htmlToElement from "../../modules/htmlToElement";
 
 class Main {
     private elem : HTMLCanvasElement;
     constructor() {
-        this.elem = document.createElement("canvas");
+        this.elem = htmlToElement(html) as HTMLCanvasElement;
         document.body.appendChild(this.elem);
 
         var engine: Engine = new Engine(this.elem, true);
@@ -23,6 +24,5 @@ class Main {
         });
     }
 }
-
 
 export default Main;
