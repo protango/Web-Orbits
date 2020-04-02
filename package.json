@@ -2,7 +2,7 @@
   "name": "web-orbits",
   "version": "1.0.0",
   "description": "An 3D Interactive N-Body simulation that runs in the web",
-  "main": "main.js",
+  "main": "dist/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "gulp",
