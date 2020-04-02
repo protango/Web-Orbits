@@ -1,8 +1,8 @@
 import './site.scss';
-import MainComponent from "./components/main/main";
+import Simulation from "./components/simulation";
 import htmlToElement from "./modules/htmlToElement";
 
 document.body.appendChild(
     htmlToElement("<h1 id='titleMain'>Web-Orbits</h1>")
 );
-var main = new MainComponent();
+var main = new Simulation();

@@ -12,7 +12,11 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['.ts', '.tsx', '.js']
+        extensions: ['.ts', '.tsx', '.js'],
+        alias: {
+            assets: path.resolve(__dirname, 'assets'),
+            src: path.resolve(__dirname, 'src')
+        }
     },
     devtool: 'source-map',
     plugins: [
@@ -39,6 +43,15 @@ module.exports = {
             test: /\.html$/,
             exclude: /node_modules/,
             use: {loader: 'html-loader'}
+        },
+        {
+            test: /\.(png|svg|jpg|gif)$/,
+            use: {
+                loader: 'file-loader', 
+                options: {
+                    name: "[path][name].[ext]"
+                }
+            }
         }]
     }
 }
