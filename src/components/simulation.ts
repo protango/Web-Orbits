@@ -19,16 +19,19 @@ class Simulation {
 
         var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
 
-        var sphere: Mesh = MeshBuilder.CreateSphere("sphere", { diameter: 1 }, scene);
+        var sphere1: Mesh = MeshBuilder.CreateSphere("sphere", { diameter: 1 }, scene);
+        var sphere2: Mesh = MeshBuilder.CreateSphere("sphere", { diameter: 1 }, scene);
 
-        var myMaterial = new StandardMaterial("earthMaterial", scene);
+        sphere2.position = new Vector3(2, 0, 2);
 
-        myMaterial.diffuseTexture = new Texture(earthTexture, scene);
+        var earthMaterial = new StandardMaterial("earthMaterial", scene);
+
+        earthMaterial.diffuseTexture = new Texture(earthTexture, scene);
         //myMaterial.specularTexture = new Texture(earthCloudsTexture, scene);
         //myMaterial.emissiveTexture = new Texture(earthCloudsTexture, scene);
         //myMaterial.ambientTexture = new Texture(earthCloudsTexture, scene);
 
-        sphere.material = myMaterial
+        sphere1.material = earthMaterial
 
         engine.runRenderLoop(() => {
             scene.render();
