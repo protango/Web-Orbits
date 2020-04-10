@@ -57,6 +57,10 @@ class Simulation {
 
         window.addEventListener("resize", function(){engine.resize();});
     }
+
+    private name() {
+        
+    }
 }
 
 export default Simulation;
