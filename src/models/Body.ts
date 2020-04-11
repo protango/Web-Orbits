@@ -15,10 +15,12 @@ class Body {
     public set position(v: Vector3) { this._mesh.position = v; }
     
 
-    constructor(mesh: Mesh, mass: number, velocity: Vector3, light: PointLight = null) {
+    constructor(mesh: Mesh, mass: number, velocity: Vector3 = null, light: PointLight = null) {
         this._mesh = mesh;
-        this.velocity = velocity;
+        this.velocity = velocity === null ? new Vector3(0, 0, 0) : velocity;
         this._light = light;
         this.mass = mass;
     }
 }
+
+export default Body;
