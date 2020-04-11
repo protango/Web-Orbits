@@ -12,8 +12,10 @@ class Body {
     public get mesh() : Mesh { return this._mesh; }
     public get light() : PointLight { return this._light; }
     public get position() : Vector3 { return this._mesh.position; }
-    public set position(v: Vector3) { this._mesh.position = v; }
-    
+    public set position(v: Vector3) { 
+        this._mesh.position = v; 
+        if (this._light) this._light.position = v; 
+    }
 
     constructor(mesh: Mesh, mass: number, velocity: Vector3 = null, light: PointLight = null) {
         this._mesh = mesh;
