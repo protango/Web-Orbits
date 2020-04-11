@@ -60,7 +60,7 @@ class Simulation {
         this._bodies.push(new Body(mercuryMesh, 1, new Vector3(0, 0.00003, 0)));
         this._bodies.push(new Body(sunMesh, 100, null, sunLight));
 
-        let dt: number = 10000; // second(s)
+        let dt: number = 2000; // second(s)
         engine.runRenderLoop(() => {
             for (let b of this._bodies) {
                 b.position = integrateMotion(b.velocity, b.position, dt);
