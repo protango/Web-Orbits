@@ -28,7 +28,7 @@ class Simulation {
         // lights
         var sunLight = new PointLight("sunLight", new Vector3(0, 0, 0), scene);
         sunLight.range = 100;
-        sunLight.specular = new Color3(0,0,0);
+        //sunLight.specular = new Color3(0,0,0);
         //var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
 
         // meshes
@@ -41,6 +41,7 @@ class Simulation {
         var sunMaterial = new StandardMaterial("sunMaterial", scene);
 
         mercuryMaterial.diffuseTexture = new Texture(mercuryTextureSrc, scene);
+        mercuryMaterial.specularColor = Color3.Black();
         sunMaterial.diffuseTexture = new Texture(sunTextureSrc, scene);
         sunMaterial.emissiveColor = new Color3(241, 135, 39);
         //myMaterial.specularTexture = new Texture(earthCloudsTexture, scene);
@@ -60,6 +61,8 @@ class Simulation {
         this._bodies.push(new Body(mercuryMesh, 1, new Vector3(0, 0.00003, 0)));
         this._bodies.push(new Body(sunMesh, 100, null, sunLight));
 
+        let fpsLabel = document.getElementById("fpsCounter");
+        let c = 0;
         let dt: number = 2000; // second(s)
         engine.runRenderLoop(() => {
             for (let b of this._bodies) {
@@ -67,7 +70,13 @@ class Simulation {
                 let netForce = calcNetForce(b, this._bodies);
                 b.velocity = integrateMotion(accelerationFromForce(netForce, b.mass), b.velocity, dt);
             }
+            
             scene.render();
+            c++;
+            if (c === 5) {
+                fpsLabel.innerHTML = engine.getFps().toFixed(1) + " FPS";
+                c = 0;
+            }
         });
 
         window.addEventListener("resize", function(){engine.resize();});
