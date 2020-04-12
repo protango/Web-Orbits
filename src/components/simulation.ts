@@ -35,21 +35,26 @@ class Simulation {
         var mercuryMesh: Mesh = MeshBuilder.CreateSphere("mercury", { diameter: 1 }, scene);
         mercuryMesh.position = new Vector3(5, 0, 0);
         var sunMesh: Mesh = MeshBuilder.CreateSphere("sun", { diameter: 3 }, scene);
+        var earthMesh: Mesh = MeshBuilder.CreateSphere("earth", { diameter: 1 }, scene);
+        earthMesh.position = new Vector3(-6, 0, 0);
 
         // materials
         var mercuryMaterial = new StandardMaterial("mercuryMaterial", scene);
         var sunMaterial = new StandardMaterial("sunMaterial", scene);
+        var earthMaterial = new StandardMaterial("earthMaterial", scene);
 
         mercuryMaterial.diffuseTexture = new Texture(mercuryTextureSrc, scene);
         mercuryMaterial.specularColor = Color3.Black();
         sunMaterial.diffuseTexture = new Texture(sunTextureSrc, scene);
         sunMaterial.emissiveColor = new Color3(241, 135, 39);
+        earthMaterial.diffuseTexture = new Texture(earthTextureSrc, scene);
         //myMaterial.specularTexture = new Texture(earthCloudsTexture, scene);
         //myMaterial.emissiveTexture = new Texture(earthCloudsTexture, scene);
         //myMaterial.ambientTexture = new Texture(earthCloudsTexture, scene);
 
-        mercuryMesh.material = mercuryMaterial
-        sunMesh.material = sunMaterial
+        mercuryMesh.material = mercuryMaterial;
+        sunMesh.material = sunMaterial;
+        earthMesh.material = earthMaterial;
 
         // glow layer for sun
         var gl = new GlowLayer("glow", scene, { 
@@ -60,6 +65,7 @@ class Simulation {
         // register bodies
         this._bodies.push(new Body(mercuryMesh, 1, new Vector3(0, 0.00003, 0)));
         this._bodies.push(new Body(sunMesh, 100, null, sunLight));
+        this._bodies.push(new Body(earthMesh, 2, new Vector3(0, 0.00002, 0.00002)));
 
         let fpsLabel = document.getElementById("fpsCounter");
         let c = 0;
