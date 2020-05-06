@@ -6,6 +6,7 @@ import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder,
 import * as $ from "jquery";
 import Body from "../models/Body";
 import { calcNetForce, integrateMotion, accelerationFromForce } from '../models/PhysicsEngine';
+import TimeControlWindow from './windows/TimeControlWindow';
 
 class Simulation {
     private _bodies: Body[] = [];
@@ -37,6 +38,7 @@ class Simulation {
         var sunMesh: Mesh = MeshBuilder.CreateSphere("sun", { diameter: 3 }, scene);
         var earthMesh: Mesh = MeshBuilder.CreateSphere("earth", { diameter: 1 }, scene);
         earthMesh.position = new Vector3(-6, 0, 0);
+        camera.setTarget(sunMesh);
 
         // materials
         var mercuryMaterial = new StandardMaterial("mercuryMaterial", scene);
@@ -69,19 +71,20 @@ class Simulation {
 
         let fpsLabel = document.getElementById("fpsCounter");
         let c = 0;
-        let dt: number = 2000; // second(s)
+        let timeControlWindow = TimeControlWindow.instance;
         engine.runRenderLoop(() => {
             for (let b of this._bodies) {
-                b.position = integrateMotion(b.velocity, b.position, dt);
+                b.position = integrateMotion(b.velocity, b.position, timeControlWindow.speedValue);
                 let netForce = calcNetForce(b, this._bodies);
-                b.velocity = integrateMotion(accelerationFromForce(netForce, b.mass), b.velocity, dt);
+                b.velocity = integrateMotion(accelerationFromForce(netForce, b.mass), b.velocity, timeControlWindow.speedValue);
             }
-            
+
             scene.render();
             c++;
             if (c === 5) {
                 fpsLabel.innerHTML = engine.getFps().toFixed(1) + " FPS";
                 c = 0;
+                console.log(timeControlWindow.speedValue);
             }
         });
 
