@@ -6,7 +6,7 @@ import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder,
 import * as $ from "jquery";
 import Body from "../models/Body";
 import { calcNetForce, integrateMotion, accelerationFromForce } from '../models/PhysicsEngine';
-import TimeControlWindow from './windows/TimeControlWindow';
+import TimeControlWindow from './windows/timeControlWindow';
 
 class Simulation {
     private _bodies: Body[] = [];
