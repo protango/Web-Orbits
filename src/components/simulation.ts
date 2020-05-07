@@ -84,7 +84,6 @@ class Simulation {
             if (c === 5) {
                 fpsLabel.innerHTML = engine.getFps().toFixed(1) + " FPS";
                 c = 0;
-                console.log(timeControlWindow.speedValue);
             }
         });
 

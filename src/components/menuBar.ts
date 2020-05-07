@@ -1,6 +1,6 @@
 import htmlToElement from "../utilities/htmlToElement";
 import InfoWindow from "./windows/infoWindow";
-import TimeControlWindow from "./windows/TimeControlWindow";
+import TimeControlWindow from "./windows/timeControlWindow";
 
 export class MenuBarItem {
     public elem : HTMLDivElement;
