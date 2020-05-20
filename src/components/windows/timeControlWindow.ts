@@ -13,7 +13,7 @@ export default class TimeControlWindow extends InfoWindow {
     private constructor() {
         let content = htmlToElement(
             `<div>
-                <input type="range" min="1" max="100" value="20" class="timeRange" />
+                <input type="range" min="-20" max="100" value="20" class="timeRange" />
                 <p>&#x0394;t=<span class="dtDisplay"></span>s</p>
             </div>`
         ) as HTMLDivElement;
