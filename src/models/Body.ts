@@ -1,6 +1,7 @@
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer } from "babylonjs";
+import { PhysicsObject } from "./PhysicsObject";
 
-class Body {
+class Body implements PhysicsObject {
     // Private fields
     private _mesh : Mesh;
     private _light : PointLight = null;

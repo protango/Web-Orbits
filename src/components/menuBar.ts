@@ -1,6 +1,7 @@
 import htmlToElement from "../utilities/htmlToElement";
 import InfoWindow from "./windows/infoWindow";
 import TimeControlWindow from "./windows/timeControlWindow";
+import TechDemoWindow from "./windows/techDemo/techDemoWindow";
 
 export class MenuBarItem {
     public elem : HTMLDivElement;
@@ -26,6 +27,7 @@ export default class MenuBar {
         this.elem = htmlToElement("<div class='menuBar'></div>") as HTMLDivElement;
         document.body.appendChild(this.elem);
         this.AddItem(new MenuBarItem("Time Controls", "fas fa-forward", TimeControlWindow.instance));
+        this.AddItem(new MenuBarItem("Tech Demo", "fas fa-tachometer-alt", TechDemoWindow.instance));
     }
 
     public AddItem(item: MenuBarItem) {

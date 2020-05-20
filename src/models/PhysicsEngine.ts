@@ -1,9 +1,10 @@
 import Body from "./Body";
 import { Vector3 } from "babylonjs";
+import { PhysicsObject } from "./PhysicsObject";
 
 const G = 6.67408 * Math.pow(10, -11);
 
-function calcNetForce(body: Body, allBodies: Body[]): Vector3 {
+function calcNetForce(body: PhysicsObject, allBodies: PhysicsObject[]): Vector3 {
     let result: Vector3 = Vector3.Zero();
     for (let otherBody of allBodies) {
         if (otherBody === body) continue;

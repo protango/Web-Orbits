@@ -70,10 +70,15 @@ canvas {
             $inactiveColor: rgba(255, 255, 255, 0.1);
             $activeColor: rgba(255, 255, 255, 0.3);
             color: $inactiveColor;
-            font-size: $btnSize;
+            font-size: $btnSize - 3;
             padding: 7px;
             border: 1px solid $inactiveColor;
             box-shadow: 2px 2px $inactiveColor;
+            width: $btnSize;
+            height: $btnSize;
+            text-align: center;
+            line-height: $btnSize;
+            margin: 3px 0 3px 0;
 
             &:hover {
                 border-color: $activeColor;
@@ -121,6 +126,10 @@ canvas {
     }
 
     .content{
+        margin: 5px;
+        color: #e7eaea;
+        height: calc(100% - 30px);
+        overflow: auto;
         &.timeControl {
             .timeRange {
                 margin: 5px auto;
@@ -129,7 +138,32 @@ canvas {
             p {
                 margin: 0 auto;
                 text-align: center;
-                color: #e7eaea;
+            }
+        }
+        &.techDemoWindow {
+            .demoBodyTable {
+                width: 100%;
+                border-collapse: collapse;
+                &,td,th {
+                    border: 1px solid #353535;
+                    text-align: center;
+                }
+                td input[type="number"] {
+                    width: 40px;
+                }
+            }
+            h5 {
+                margin: 5px 0 5px 0;
+            }
+            .outputConsole {
+                background-color: black;
+                display: black;
+                width: calc(100% - 5px);
+                height: 250px;
+                resize: none;
+                border: 1px solid #353535;
+                font-family: 'Courier New', Courier, monospace;
+                color: white;
             }
         }
     }
