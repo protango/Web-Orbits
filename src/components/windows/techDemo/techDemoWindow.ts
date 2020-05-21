@@ -87,6 +87,12 @@ export default class TechDemoWindow extends InfoWindow {
             disableBtns();
             this.runVanilla();
         });
+        wasmBtn.addEventListener("click", () => {
+            cancelBtn.style.display="inline"; 
+            wasmBtn.style.backgroundColor = "lightgreen";
+            disableBtns();
+            this.runWasm();
+        });
     }
 
     private addBtnHandler() {
@@ -154,6 +160,39 @@ export default class TechDemoWindow extends InfoWindow {
         this.running = false;
         this.cancelOperation = false;
         this.ConsoleLog("Stopped simulation in vanilla JS");
+    }
+
+    private async runWasm() {
+        let timeControlWindow = TimeControlWindow.instance;
+        if (this.running) return;
+        this.ConsoleLog("Running simulation in web assembly");
+        this.running = true;
+        let startTime = performance.now();
+        let iterations = 0;
+        while(!this.cancelOperation) {
+            for (let b of this.bodies) {
+                let nf = calcNetForce(b, this.bodies);
+                let a = accelerationFromForce(nf, b.mass);
+                b.position = integrateMotion(b.velocity, b.position, timeControlWindow.speedValue);
+                b.velocity = integrateMotion(a, b.velocity, timeControlWindow.speedValue);
+            }
+            iterations++;
+            let now = performance.now();
+            let elapsed = now - startTime;
+            if (elapsed > 500) {
+                this.ConsoleLog(`Completed ${iterations} iterations in ${elapsed}ms`);
+                for (let b of this.bodies) {
+                    b.updateRow();
+                }
+                iterations = 0;
+                startTime = performance.now();
+            }
+            // Sleep for a bit to let the app breathe
+            await new Promise((r) => setTimeout(r, 1));
+        }
+        this.running = false;
+        this.cancelOperation = false;
+        this.ConsoleLog("Stopped simulation in web assembly");
     }
 
     private ConsoleLog(s:string) {
