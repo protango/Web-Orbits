@@ -18,6 +18,7 @@ class Simulation {
     public elem : HTMLCanvasElement;
     public scene: Scene;
     public camera: ArcRotateCamera;
+    public targetBody: Body;
 
     public get bgColor(): Color4 { return this.scene.clearColor; }
     public set bgColor(c: Color4) { this.scene.clearColor = c; }
@@ -117,9 +118,17 @@ class Simulation {
         return body;
     }
 
+    public target(b: Body) {
+        if (!b) return;
+        this.targetBody = b;
+        this.camera.setTarget(b.mesh);
+    }
+
     private pointerUpHandler(evt: PointerEvent, pickInfo: PickingInfo, type: PointerEventTypes) {
-        if (pickInfo.hit)
-            this.camera.setTarget(pickInfo.pickedMesh);
+        if (pickInfo.hit) {
+            let b = this.bodies.find(x => x.mesh === pickInfo.pickedMesh);
+            this.target(b);
+        }
     }
 }
 
