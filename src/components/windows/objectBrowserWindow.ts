@@ -2,6 +2,7 @@ import htmlToElement from "../../utilities/htmlToElement";
 import InfoWindow from "./infoWindow";
 
 export default class ObjectBrowserWindow extends InfoWindow {
+    private bodies: Body[];
     private static _instance: ObjectBrowserWindow
     public static get instance() : ObjectBrowserWindow {
         return this._instance ?? (this._instance = new ObjectBrowserWindow());
@@ -31,7 +32,9 @@ export default class ObjectBrowserWindow extends InfoWindow {
             </div>`
         ) as HTMLDivElement;
         super("Object Browser", content);
-
+        this.bodies = [];
         
     }
+
+    public registerSimulation(bodies: Body[]) { this.bodies = bodies; }
 }

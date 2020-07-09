@@ -17,12 +17,16 @@ class Body implements PhysicsObject {
         this._mesh.position = v; 
         if (this._light) this._light.position = v; 
     }
+    public get name() : string { return this.mesh.name };
+    public set name(s: string) { this.mesh.name = s };
+
 
     constructor(mesh: Mesh, mass: number, velocity: Vector3 = null, light: PointLight = null) {
         this._mesh = mesh;
         this.velocity = velocity === null ? new Vector3(0, 0, 0) : velocity;
         this._light = light;
         this.mass = mass;
+        this.name = name;
     }
 }
 

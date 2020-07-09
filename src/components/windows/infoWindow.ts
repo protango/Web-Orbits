@@ -1,6 +1,7 @@
 import htmlToElement from "../../utilities/htmlToElement";
 
 export default abstract class InfoWindow {
+    protected defaultSize = {width: 200, height: 100};
     protected minSize = {width: 200, height: 100};
     protected elem: HTMLDivElement;
     public title: string;
@@ -25,7 +26,7 @@ export default abstract class InfoWindow {
     constructor(title: string, content: HTMLDivElement) {
         this.title = title;
         this.elem = htmlToElement(
-            `<div class="infoWindow">
+            `<div class="infoWindow" style="width: ${this.defaultSize.width}px; height:${this.defaultSize.height}px">
                 <div class="topBar">
                     <h1>${title}</h1>
                     <i class="close fas fa-times"></i>
