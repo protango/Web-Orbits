@@ -2,11 +2,12 @@ import earthTextureSrc from 'assets/earth.jpg';
 import sunTextureSrc from 'assets/sun.jpg';
 import mercuryTextureSrc from 'assets/mercury.jpg';
 import earthCloudsTexture from 'assets/earth_clouds.jpg';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer, Material } from "babylonjs";
+import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer, Material, PickingInfo, PointerEventTypes } from "babylonjs";
 import * as $ from "jquery";
 import Body from "../models/Body";
 import { calcNetForce, integrateMotion, accelerationFromForce } from '../models/PhysicsEngine';
 import TimeControlWindow from './windows/timeControlWindow';
+import ObjectBrowserWindow from './windows/objectBrowserWindow';
 
 enum BodyAppearance {
     Sun, Earth, Mercury, Blank
@@ -16,6 +17,7 @@ class Simulation {
     public bodies: Body[] = [];
     public elem : HTMLCanvasElement;
     public scene: Scene;
+    public camera: ArcRotateCamera;
 
     public get bgColor(): Color4 { return this.scene.clearColor; }
     public set bgColor(c: Color4) { this.scene.clearColor = c; }
@@ -35,8 +37,8 @@ class Simulation {
         scene.clearColor = new Color4(0.1, 0.1, 0.1); // background colour
 
         // camera
-        var camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 6, Vector3.Zero(), scene);
-        camera.attachControl(this.elem, true);
+        this.camera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 60, Vector3.Zero(), scene);
+        this.camera.attachControl(this.elem, true);
 
         // materials
         var mercuryMaterial = new StandardMaterial("mercuryMaterial", scene);
@@ -64,12 +66,19 @@ class Simulation {
         gl.intensity = 0.6;
 
         // register bodies
-        this.addBody("Sun", 100, Vector3.Zero(), 3, BodyAppearance.Sun, Vector3.Zero(), 100);
-        this.addBody("Earth", 2, new Vector3(-6, 0, 0), 1, BodyAppearance.Earth, new Vector3(0, 0.00002, 0.00002));
-        this.addBody("Mercury", 1, new Vector3(5, 0, 0), 1, BodyAppearance.Mercury, new Vector3(0, 0.00003, 0));
+        this.addBody("Sun", 100000, Vector3.Zero(), 30, BodyAppearance.Sun, Vector3.Zero(), 1000);
+        this.addBody("Earth", 200, new Vector3(-60, 0, 0), 10, BodyAppearance.Earth, new Vector3(0, 0.0002, 0.0002));
+        this.addBody("Mercury", 100, new Vector3(50, 0, 0), 10, BodyAppearance.Mercury, new Vector3(0, 0.0003, 0));
 
-        camera.setTarget(this.bodies[0].mesh);
+        this.camera.setTarget(this.bodies[0].mesh);
 
+        // Register event handlers
+        scene.onPointerUp = (evt, pickInfo, type) => this.pointerUpHandler(evt, pickInfo, type);
+
+        // Register simulation with windows that need it
+        ObjectBrowserWindow.instance.registerSimulation(this);
+
+        // Render loop
         let fpsLabel = document.getElementById("fpsCounter");
         let c = 0;
         let timeControlWindow = TimeControlWindow.instance;
@@ -106,6 +115,11 @@ class Simulation {
         this.bodies.push(body);
 
         return body;
+    }
+
+    private pointerUpHandler(evt: PointerEvent, pickInfo: PickingInfo, type: PointerEventTypes) {
+        if (pickInfo.hit)
+            this.camera.setTarget(pickInfo.pickedMesh);
     }
 }
 

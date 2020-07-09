@@ -1,9 +1,9 @@
 import htmlToElement from "../../utilities/htmlToElement";
 
 export default abstract class InfoWindow {
-    protected defaultSize = {width: 200, height: 100};
     protected minSize = {width: 200, height: 100};
     protected elem: HTMLDivElement;
+    protected onOpen: () => void;
     public title: string;
     public isOpen: boolean = false;
     public isFocussed: boolean = false;
@@ -26,7 +26,7 @@ export default abstract class InfoWindow {
     constructor(title: string, content: HTMLDivElement) {
         this.title = title;
         this.elem = htmlToElement(
-            `<div class="infoWindow" style="width: ${this.defaultSize.width}px; height:${this.defaultSize.height}px">
+            `<div class="infoWindow">
                 <div class="topBar">
                     <h1>${title}</h1>
                     <i class="close fas fa-times"></i>
@@ -90,6 +90,7 @@ export default abstract class InfoWindow {
         let mouseUpHandler = (e: MouseEvent) => {
             if (activeHandle != null) {
                 activeHandle = null;
+                this.elem.style.userSelect = null;
                 document.body.removeEventListener("mouseup", mouseUpHandler);
                 document.body.removeEventListener("mousemove", mouseMoveHandler);
             }
@@ -97,6 +98,7 @@ export default abstract class InfoWindow {
         let mouseDownHandler = (e) => {
             if (activeHandle == null) {
                 activeHandle = e.target as HTMLDivElement;
+                this.elem.style.userSelect = "none";
                 document.body.addEventListener("mouseup", mouseUpHandler);
                 document.body.addEventListener("mousemove", mouseMoveHandler);
             }
@@ -134,6 +136,7 @@ export default abstract class InfoWindow {
         this.isOpen = true;
         this.elem.style.display = null;
         this.focus();
+        if (this.onOpen) this.onOpen();
     }
 
     public close() {
@@ -158,5 +161,11 @@ export default abstract class InfoWindow {
         }
 
         this.isFocussed = true;
+    }
+
+    public resize(width: number, height: number)
+    {
+        if (width != null) this.elem.style.width = width + "px";
+        if (height != null) this.elem.style.height = height + "px";
     }
 }

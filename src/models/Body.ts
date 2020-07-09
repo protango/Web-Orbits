@@ -26,7 +26,6 @@ class Body implements PhysicsObject {
         this.velocity = velocity === null ? new Vector3(0, 0, 0) : velocity;
         this._light = light;
         this.mass = mass;
-        this.name = name;
     }
 }
 
