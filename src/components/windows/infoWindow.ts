@@ -1,9 +1,26 @@
 import htmlToElement from "../../utilities/htmlToElement";
 
 export default abstract class InfoWindow {
+    protected minSize = {width: 200, height: 100};
     protected elem: HTMLDivElement;
     public title: string;
     public isOpen: boolean = false;
+    public isFocussed: boolean = false;
+    public otherWindows: InfoWindow[] = [];
+    
+    public get zIndex() : number {
+        return Number(this.elem.style.zIndex || 0);
+    }
+    public set zIndex(val: number) {
+        this.elem.style.zIndex = val.toString();
+    }
+    public get width() : number {
+        return Number(this.elem.style.width || 0);
+    }
+    public set position(val: number) {
+        this.elem.style.zIndex = val.toString();
+    }
+    
 
     constructor(title: string, content: HTMLDivElement) {
         this.title = title;
@@ -24,7 +41,8 @@ export default abstract class InfoWindow {
         content.classList.add("content");
         this.close();
         this.elem.querySelector(".horizontal").insertBefore(content, this.elem.querySelector(".rightDragHandle"));
-        (this.elem.querySelector(".close") as HTMLElement).onclick = () => this.close();
+        (this.elem.querySelector(".close") as HTMLElement).onclick = (e) => this.close();
+        (this.elem.querySelector(".close") as HTMLElement).onmousedown = (e) => e.stopPropagation();
         document.body.appendChild(this.elem);
 
         // Top bar dragging stuff
@@ -36,6 +54,8 @@ export default abstract class InfoWindow {
             this.elem.querySelector(".btmDragHandle") as HTMLDivElement,
             this.elem.querySelector(".btmlftDragHandle") as HTMLDivElement
         );
+
+        this.elem.addEventListener("mousedown", () => this.focus());
     }
 
     private attachResizeControl(rightHandle: HTMLDivElement, btmHandle: HTMLDivElement, btmLftHandle: HTMLDivElement) {
@@ -44,19 +64,27 @@ export default abstract class InfoWindow {
         let activeHandle: HTMLDivElement = null;
 
         let mouseMoveHandler = (e: MouseEvent) => {
+            let width: number, height: number;
             switch (activeHandle)
             {
                 case rightHandle:
-                    self.elem.style.width = (e.pageX - self.elem.offsetLeft) + "px";
+                    width = (e.pageX - self.elem.offsetLeft);
                     break;
                 case btmHandle:
-                    self.elem.style.height = (e.pageY - self.elem.offsetTop) + "px";
+                    height = (e.pageY - self.elem.offsetTop);
                     break;
                 case btmLftHandle:
-                    self.elem.style.width = (e.pageX - self.elem.offsetLeft) + "px";
-                    self.elem.style.height = (e.pageY - self.elem.offsetTop) + "px";
+                    width = (e.pageX - self.elem.offsetLeft);
+                    height = (e.pageY - self.elem.offsetTop);
                     break;
             }
+
+            if (width != null)
+                if (width >= self.minSize.width) self.elem.style.width = width + "px";
+                else self.elem.style.width = self.minSize.width + "px";
+            if (height != null)
+                if (height >= self.minSize.height) self.elem.style.height = height + "px";
+                else self.elem.style.height = self.minSize.height + "px";
         }
         let mouseUpHandler = (e: MouseEvent) => {
             if (activeHandle != null) {
@@ -104,10 +132,30 @@ export default abstract class InfoWindow {
     public open() {
         this.isOpen = true;
         this.elem.style.display = null;
+        this.focus();
     }
 
     public close() {
         this.isOpen = false;
         this.elem.style.display = "none";
+    }
+
+    public focus() {
+        if (this.isFocussed) return;
+
+        if (!this.isOpen) this.open();
+
+        let ordered = this.otherWindows.sort((x, y) => x.zIndex - y.zIndex);
+        ordered.splice(ordered.indexOf(this), 1);
+        ordered.push(this);
+
+        for (let i = 0; i<ordered.length; i++)
+        {
+            let win = ordered[i];
+            win.zIndex = i + 1;
+            win.isFocussed = false;
+        }
+
+        this.isFocussed = true;
     }
 }

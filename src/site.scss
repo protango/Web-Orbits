@@ -112,6 +112,9 @@ canvas {
             font-size: 15px;
             color: #bbb;
         }
+        .close:hover {
+            color: #eee;
+        }
         h1 {
             margin: 0;
             margin-left: 0px;
@@ -132,7 +135,7 @@ canvas {
         overflow: auto;
         float: left;
         width: calc(100% - 3px);
-        padding: 5px 2px 2px 2px;
+        padding: 5px 2px 5px 2px;
         box-sizing: border-box;
         &.timeControl {
             .timeRange {
