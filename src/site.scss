@@ -97,19 +97,20 @@ canvas {
     border: 1px solid rgba(255,255,255,0.2);
     background-color: rgba($color: #000000, $alpha: 0.8);
 
+    $topBarHeight: 20px;
     .topBar {
-        height: 20px;
+        height: $topBarHeight;
         background: rgba(255,255,255,0.1);
 
         .close {
             float: right;
-            width: 20px;
-            height: 100%;
+            width: $topBarHeight;
+            height: $topBarHeight;
             padding: 0px;
             text-align: center;
-            line-height: 20px;
+            line-height: $topBarHeight;
             font-size: 15px;
-            color: #bbb;;;
+            color: #bbb;
         }
         h1 {
             margin: 0;
@@ -117,7 +118,7 @@ canvas {
             font-weight: normal;
             font-size: 12px;
             display: inline-block;
-            line-height: 20px;
+            line-height: $topBarHeight;
             color: #bbb;
             font-variant: small-caps;
             margin-left: 5px;
@@ -126,10 +127,13 @@ canvas {
     }
 
     .content{
-        margin: 5px;
         color: #e7eaea;
-        height: calc(100% - 30px);
+        height: 100%;
         overflow: auto;
+        float: left;
+        width: calc(100% - 3px);
+        padding: 5px 2px 2px 2px;
+        box-sizing: border-box;
         &.timeControl {
             .timeRange {
                 margin: 5px auto;
@@ -140,31 +144,27 @@ canvas {
                 text-align: center;
             }
         }
-        &.techDemoWindow {
-            .demoBodyTable {
-                width: 100%;
-                border-collapse: collapse;
-                &,td,th {
-                    border: 1px solid #353535;
-                    text-align: center;
-                }
-                td input[type="number"] {
-                    width: 40px;
-                }
-            }
-            h5 {
-                margin: 5px 0 5px 0;
-            }
-            .outputConsole {
-                background-color: black;
-                display: black;
-                width: calc(100% - 5px);
-                height: 250px;
-                resize: none;
-                border: 1px solid #353535;
-                font-family: 'Courier New', Courier, monospace;
-                color: white;
-            }
-        }
+    }
+    // dragging stuff
+    .horizontal {
+        height: calc(100% - #{$topBarHeight} - 3px);
+    }
+    .rightDragHandle {
+        float: left;
+        cursor: e-resize;
+        width: 3px;
+        height: 100%;
+    }
+    .btmDragHandle {
+        cursor: s-resize;
+        height: 3px;
+        width: calc(100% - 3px);
+        float: left;
+    }
+    .btmlftDragHandle {
+        cursor: se-resize;
+        height: 3px;
+        width: 3px;
+        float: left;
     }
 }
