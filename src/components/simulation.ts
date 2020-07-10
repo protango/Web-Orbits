@@ -118,6 +118,15 @@ class Simulation {
         return body;
     }
 
+    public removeBody(b: Body) {
+        let idx = this.bodies.indexOf(b);
+        if (idx !== -1) {
+            this.bodies.splice(idx, 1);
+            b.mesh.dispose();
+        }
+        ObjectBrowserWindow.instance.updateTable();
+    }
+
     public target(b: Body) {
         if (!b) return;
         this.targetBody = b;

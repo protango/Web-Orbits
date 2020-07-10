@@ -21,6 +21,8 @@ export default abstract class InfoWindow {
     public set position(val: number) {
         this.elem.style.zIndex = val.toString();
     }
+
+    private topBarElem :HTMLDivElement;
     
 
     constructor(title: string, content: HTMLDivElement) {
@@ -45,9 +47,10 @@ export default abstract class InfoWindow {
         (this.elem.querySelector(".close") as HTMLElement).onclick = (e) => this.close();
         (this.elem.querySelector(".close") as HTMLElement).onmousedown = (e) => e.stopPropagation();
         document.body.appendChild(this.elem);
+        this.topBarElem = this.elem.querySelector(".topBar");
 
         // Top bar dragging stuff
-        this.attachDragControl(this.elem.querySelector(".topBar") as HTMLDivElement);
+        this.attachDragControl(this.topBarElem);
 
         // Resizing Stuff
         this.attachResizeControl(
@@ -119,6 +122,7 @@ export default abstract class InfoWindow {
         let mouseUpHandler = (e: MouseEvent) => {
             if (dragOffset != null) {
                 dragOffset = null;
+                this.elem.style.userSelect = null;
                 document.body.removeEventListener("mouseup", mouseUpHandler);
                 document.body.removeEventListener("mousemove", mouseMoveHandler);
             }
@@ -126,6 +130,7 @@ export default abstract class InfoWindow {
         topBarElem.onmousedown = (e) => {
             if (dragOffset == null) {
                 dragOffset = [e.offsetX, e.offsetY];
+                this.elem.style.userSelect = "none";
                 document.body.addEventListener("mouseup", mouseUpHandler);
                 document.body.addEventListener("mousemove", mouseMoveHandler);
             }
@@ -153,14 +158,16 @@ export default abstract class InfoWindow {
         ordered.splice(ordered.indexOf(this), 1);
         ordered.push(this);
 
-        for (let i = 0; i<ordered.length; i++)
+        for (let i = 0; i<ordered.length - 1; i++)
         {
             let win = ordered[i];
             win.zIndex = i + 1;
             win.isFocussed = false;
+            win.elem.classList.remove("focus");
         }
-
+        this.zIndex = ordered.length;
         this.isFocussed = true;
+        this.elem.classList.add("focus");
     }
 
     public resize(width: number, height: number)
