@@ -54,7 +54,7 @@ export default class ObjectBrowserWindow extends InfoWindow {
             () => NewObjectWindow.instance.open();
     }
 
-    public registerSimulation(sim: Simulation) { this.simulation = sim; this.updateTable(); }
+    public attachSimulation(sim: Simulation) { this.simulation = sim; this.updateTable(); }
 
     public updateTable() {
         if (!this.isOpen || this.suspendUpdates) {

@@ -148,19 +148,19 @@ canvas {
     }
 
     .content{
-        color: #e7eaea;
+        color: #c4c4c4;
         height: 100%;
         overflow: auto;
         float: left;
         width: calc(100% - 3px);
         padding: 5px 2px 2px 5px;
         box-sizing: border-box;
+        font-size: 15px;
         table {
             border-spacing: 0;
             width: 100%;
             td,th {
                 text-align: left;
-                font-size: 15px;
             }
             tbody tr:nth-child(odd) {
                 background-color: rgba(200, 200, 200, 0.1);
@@ -181,14 +181,14 @@ canvas {
 
             &.left {
                 float: left;
-                &:not(:last-child) {
+                &:not(:first-child) {
                     margin-right: 8px;
                 }
             }
 
             &.right {
                 float: right;
-                &:not(:first-child) {
+                &:not(:last-child) {
                     margin-left: 8px;
                 }
             }
@@ -200,6 +200,11 @@ canvas {
             &.disabled {
                 color: #6d6d6d;
             }
+        }
+
+        .actions {
+            margin-top: 20px;
+            height: 35px;
         }
     }
     // dragging stuff
@@ -248,11 +253,42 @@ canvas {
         color: rgb(171, 204, 231);
     }
     .tableScroll {
-        height: calc(100% - 41px);
+        height: calc(100% - 56px);
         overflow: auto;
     }
-    .actions {
-        margin-top: 8px;
-        height: 35px;
+}
+
+form {
+    input {
+        box-sizing: border-box;
+    }
+    input[type='text'],input[type='number'],select {
+        background: #181818;
+        border: 1px solid #333;
+        color: inherit;
+        padding: 3px 5px 3px 5px;
+    }
+    input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0; 
+    }
+    input[type=number] { 
+        -moz-appearance: textfield;
+        appearance: textfield;
+    }
+    .wholeLine {
+        display: block;
+        width: 100%;
+        margin-top: 2px;
+    }
+
+    h1.subSection {
+        font-variant: small-caps;
+        margin: 10px 0 5px 0;
+        color: #bbb;
+        font-size: 15px;
+        font-weight: normal;
+        border-bottom: 1px solid #333;
+        padding-left: 10px;
     }
 }

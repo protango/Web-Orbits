@@ -9,8 +9,11 @@ import { calcNetForce, integrateMotion, accelerationFromForce } from '../models/
 import TimeControlWindow from './windows/timeControlWindow';
 import ObjectBrowserWindow from './windows/objectBrowserWindow';
 
-enum BodyAppearance {
-    Sun, Earth, Mercury, Blank
+export enum BodyAppearance {
+    Blank = "Blank",
+    Sun = "Sun", 
+    Earth = "Earth", 
+    Mercury = "Mercury"
 }
 
 class Simulation {
@@ -77,7 +80,7 @@ class Simulation {
         scene.onPointerUp = (evt, pickInfo, type) => this.pointerUpHandler(evt, pickInfo, type);
 
         // Register simulation with windows that need it
-        ObjectBrowserWindow.instance.registerSimulation(this);
+        ObjectBrowserWindow.instance.attachSimulation(this);
 
         // Render loop
         let fpsLabel = document.getElementById("fpsCounter");
