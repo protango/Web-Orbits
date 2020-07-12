@@ -11,18 +11,15 @@ export default class TimeControlWindow extends InfoWindow {
     public onSpeedChange: (speedValue: number) => any;
 
     private constructor() {
-        let content = htmlToElement(
-            `<div>
-                <input type="range" min="-20" max="100" value="20" class="timeRange" />
+        super("Time Controls", `
+            <div class="timeControl">
+                <input type="range" min="-2000" max="10000" value="2000" class="timeRange" />
                 <p>&#x0394;t=<span class="dtDisplay"></span>s</p>
-            </div>`
-        ) as HTMLDivElement;
-        super("Time Controls", content);
-        content.classList.add("timeControl");
+            </div>`);
         let timeInput = this.elem.querySelector(".timeRange") as HTMLInputElement;
         let dtDisplay = this.elem.querySelector(".dtDisplay") as HTMLSpanElement;
         timeInput.oninput = () => {
-            this.speedValue = timeInput.valueAsNumber * 100;
+            this.speedValue = timeInput.valueAsNumber;
             dtDisplay.innerHTML = this.speedValue.toString();
             if (this.onSpeedChange) this.onSpeedChange(this.speedValue);
         };

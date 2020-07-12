@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const keysTransformer = require('ts-transformer-keys/transformer').default;
 
 module.exports = {
     mode: 'development',
@@ -29,7 +30,14 @@ module.exports = {
         rules: [{
             test: /\.tsx?$/,
             loader: 'ts-loader',
-            exclude: /node_modules/
+            exclude: /node_modules/,
+            options: {
+                getCustomTransformers: program => ({
+                    before: [
+                        keysTransformer(program)
+                    ]
+                })
+            }
         }, {
             test: /\.s[ac]ss$/i,
             use: [

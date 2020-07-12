@@ -8,12 +8,9 @@ export default class ObjectInfoWindow extends InfoWindow {
     }
 
     private constructor() {
-        let content = htmlToElement(
-            `<div>
-            </div>`
-        ) as HTMLDivElement;
-        super("Object Info", content);
-        content.classList.add("objectInfo");
+        super("Object Info", `
+            <div class="objectInfo">
+            </div>`);
     }
 }
 

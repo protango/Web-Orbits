@@ -256,6 +256,28 @@ canvas {
         height: calc(100% - 56px);
         overflow: auto;
     }
+    .objectTable {
+        cursor: default;
+    }
+    .objectTable tbody tr {
+        transition: background-color 0.1s ease;
+        td {
+            padding: 1px;
+        }
+    }
+    .objectTable tbody tr:hover:not(.highlight) {
+        background-color: #282828;
+    }
+    .objectTable tbody tr.highlight {
+        background-color: #06133e;
+        td {
+            border: 1px solid #0a3575;
+            border-left: none;
+            border-right: none;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+    }
 }
 
 form {

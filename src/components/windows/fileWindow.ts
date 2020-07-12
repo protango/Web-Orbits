@@ -8,12 +8,7 @@ export default class FileWindow extends InfoWindow {
     }
 
     private constructor() {
-        let content = htmlToElement(
-            `<div>
-            </div>`
-        ) as HTMLDivElement;
-        super("File", content);
-        content.classList.add("fileWindow");
+        super("File", `<div class="fileWindow"></div>`);
     }
 }
 

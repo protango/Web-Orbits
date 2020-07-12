@@ -1,5 +1,6 @@
 import htmlToElement from "../../utilities/htmlToElement";
 import InfoWindow from "./infoWindow";
+import Simulation from "../simulation";
 
 export default class SimulationPropertiesWindow extends InfoWindow {
     private static _instance: SimulationPropertiesWindow
@@ -7,13 +8,23 @@ export default class SimulationPropertiesWindow extends InfoWindow {
         return this._instance ?? (this._instance = new SimulationPropertiesWindow());
     }
 
+    private simulation: Simulation;
+
     private constructor() {
-        let content = htmlToElement(
-            `<div>
-            </div>`
-        ) as HTMLDivElement;
-        super("Simulation Properties", content);
-        content.classList.add("simpPropWindow");
+        super("Simulation Properties", `
+            <div class="simpPropWindow">
+                <input type="checkbox" id="showAxes" />
+                <label for="showAxes">Show global axes</label>
+            </div>`);
+        let showAxesCheck = this.elem.querySelector("#showAxes") as HTMLInputElement;
+        showAxesCheck.onchange = () => {
+            if (showAxesCheck.checked) this.simulation.showAxes(100);
+            else this.simulation.hideAxes();
+        }
+    }
+
+    public attachSimulation(sim: Simulation) {
+        this.simulation = sim;
     }
 }
 

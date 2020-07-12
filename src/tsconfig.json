@@ -1,14 +1,14 @@
 {
     "compilerOptions": {
       "target": "es6",
-      "module": "es6",
+      "module": "CommonJS",
       "outDir": "../dist/public/js",
       "sourceMap": true,
       "types": [
         "babylonjs"
       ],
       "jsx": "react-native",
-      "lib": ["DOM", "DOM.Iterable", "webworker", "es6", "scripthost"]
+      "lib": ["DOM", "DOM.Iterable", "webworker", "es6", "scripthost", "es2017"]
     },
     "include": [
       "./**/*.ts"

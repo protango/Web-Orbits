@@ -3,6 +3,7 @@ import InfoWindow from "./infoWindow";
 import Simulation from "../simulation";
 import NewObjectWindow from "./newObjectWindow";
 import Body from "../../models/Body";
+import HTMLRepeater from "../../models/HTMLRepeater";
 
 export default class ObjectBrowserWindow extends InfoWindow {
     private static _instance: ObjectBrowserWindow
@@ -16,16 +17,17 @@ export default class ObjectBrowserWindow extends InfoWindow {
     public suspendUpdates: boolean;
 
     private constructor() {
-        let content = htmlToElement(
-            `<div class="objectBrowser">
+        super("Object Browser", `
+            <div class="objectBrowser">
                 <div class="tableScroll">
                     <table class="objectTable">
                         <thead>
                             <tr>
                                 <th style="width: 30px;"><input type="checkbox" class="selectAll" /></th>
-                                <th style="width: 30px;">#</th>
+                                <th style="width: 30px;">Id</th>
                                 <th>Name</th>
                                 <th>Mass (kg)</th>
+                                <th>Diamester (m)</th>
                                 <th style="width: 30px;"></th>
                             </tr>
                         </thead>
@@ -34,18 +36,15 @@ export default class ObjectBrowserWindow extends InfoWindow {
                     </table>
                 </div>
                 <div class="actions">
-                    <button class="left deleteBtn"><i class="fas fa-trash"></i>Delete selected</button>
+                    <button class="left deleteBtn disabled"><i class="fas fa-trash"></i>Delete selected</button>
                     <button class="right newBtn"><i class="fas fa-plus"></i>Add new</button>
                 </div>
-            </div>`
-        ) as HTMLDivElement;
-        super("Object Browser", content);
+            </div>`);
         this.resize(350, 180);
         this.minSize = {width: 240, height: 180};
-        (content.querySelector(".selectAll") as HTMLInputElement).onchange = (e) => this.updateSelect(e.target as HTMLInputElement);
+        (this.elem.querySelector(".selectAll") as HTMLInputElement).onchange = (e) => this.updateSelect(e.target as HTMLInputElement);
         this.updateQueued = false;
         this.suspendUpdates = false;
-        this.onOpen = () => {if (this.updateQueued) {this.updateTable()}};
 
         // Button event handlers
         this.deleteBtn = (this.elem.querySelector(".deleteBtn") as HTMLButtonElement);
@@ -54,30 +53,39 @@ export default class ObjectBrowserWindow extends InfoWindow {
             () => NewObjectWindow.instance.open();
     }
 
-    public attachSimulation(sim: Simulation) { this.simulation = sim; this.updateTable(); }
+    public attachSimulation(sim: Simulation) { 
+        this.simulation = sim;
 
-    public updateTable() {
-        if (!this.isOpen || this.suspendUpdates) {
-            this.updateQueued = true;
-            return;
-        }
-        this.updateQueued = false;
+        // Repeater for table rows
         let tbody = this.elem.querySelector(".objectTable tbody") as HTMLTableSectionElement;
-        [...tbody.childNodes].forEach(x => x.remove());
-        for (let i = 0; i<this.simulation.bodies.length; i++) {
-            let body = this.simulation.bodies[i];
+        let repeater = new HTMLRepeater<Body>((body) => {
             let newRow = document.createElement("tr");
+            newRow.id = "BodyRow" + body.id;
             newRow.innerHTML = `
                 <td><input class="bodyCheck" type="checkbox" /></td>
-                <td>${i+1}</td>
+                <td>${body.id}</td>
                 <td>${body.name}</td>
                 <td>${body.mass}</td>
+                <td>${body.diameter}</td>
                 <td class="infoBtnCell"><i class="fas fa-info-circle"></i></td>
             `;
-            tbody.appendChild(newRow);
-            (newRow.querySelector(".bodyCheck") as HTMLInputElement).onchange = (e) => this.updateSelect(e.target as HTMLInputElement);
-        }
-        this.updateSelect(null);
+            let bodyCheck = newRow.querySelector(".bodyCheck") as HTMLInputElement;
+            bodyCheck.onchange = (e) => this.updateSelect(e.target as HTMLInputElement);
+            bodyCheck.onclick = (e) => e.stopPropagation();
+            newRow.onclick = () => { this.simulation.target(body) };
+            return newRow;
+        }, tbody, sim.bodies);
+        this.simulation.onAddBodies.addHandler(b => {repeater.notifyObjsAdded(b); this.updateSelect(null);});
+        this.simulation.onRemoveBodies.addHandler(b => {repeater.notifyObjsRemoved(b); this.updateSelect(null);});
+        this.simulation.onTargetChange.addHandler(b => this.onTargetChange(b));
+    }
+
+    private onTargetChange(body: Body) {
+        let rows = this.elem.querySelectorAll(".objectTable tbody tr.highlight") as NodeListOf<HTMLTableRowElement>;
+        rows.forEach(x => x.classList.remove("highlight"));
+
+        let row = this.elem.querySelector(".objectTable tbody tr#BodyRow" + body.id);
+        if (row) row.classList.add("highlight");
     }
 
     private updateSelect(checkBox: HTMLInputElement) {
@@ -89,7 +97,7 @@ export default class ObjectBrowserWindow extends InfoWindow {
         } else if (checkBox) {
             if (selectAll.checked && !checkBox.checked) selectAll.checked = false;
         } else {
-            if (selectAll.checked && [...checkBoxes].some(x => !x.checked))
+            if (selectAll.checked && ([...checkBoxes].some(x => !x.checked) || !checkBoxes.length))
                 selectAll.checked = false;
         }
 
@@ -107,11 +115,6 @@ export default class ObjectBrowserWindow extends InfoWindow {
             if (checkBoxes[i].checked)
                 bodiesToRemove.push(this.simulation.bodies[i]);
         }
-        this.suspendUpdates = true;
-        for (let b of bodiesToRemove) {
-            this.simulation.removeBody(b);
-        }
-        this.suspendUpdates = false;
-        this.updateTable();
+        this.simulation.removeBodies(bodiesToRemove);
     }
 }

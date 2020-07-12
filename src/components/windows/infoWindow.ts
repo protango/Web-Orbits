@@ -4,6 +4,8 @@ export default abstract class InfoWindow {
     protected minSize = {width: 200, height: 100};
     protected elem: HTMLDivElement;
     protected onOpen: () => void;
+    protected onClose: () => void;
+    protected onFocus: () => void;
     public title: string;
     public isOpen: boolean = false;
     public isFocussed: boolean = false;
@@ -23,9 +25,9 @@ export default abstract class InfoWindow {
     }
 
     private topBarElem :HTMLDivElement;
-    
+    public errorWin: InfoWindow = null;
 
-    constructor(title: string, content: HTMLDivElement) {
+    constructor(title: string, htmlContent: string) {
         this.title = title;
         this.elem = htmlToElement(
             `<div class="infoWindow">
@@ -41,6 +43,7 @@ export default abstract class InfoWindow {
                 <div class="btmlftDragHandle"></div>
             </div>`
         ) as HTMLDivElement;
+        let content = htmlToElement(htmlContent) as HTMLElement;
         content.classList.add("content");
         this.close();
         this.elem.querySelector(".horizontal").insertBefore(content, this.elem.querySelector(".rightDragHandle"));
@@ -147,9 +150,15 @@ export default abstract class InfoWindow {
     public close() {
         this.isOpen = false;
         this.elem.style.display = "none";
+        if (this.onClose) this.onClose();
     }
 
     public focus() {
+        if (this.errorWin) {
+            this.errorWin.focus();
+            return;
+        }
+
         if (this.isFocussed) return;
 
         if (!this.isOpen) this.open();
@@ -168,11 +177,20 @@ export default abstract class InfoWindow {
         this.zIndex = ordered.length;
         this.isFocussed = true;
         this.elem.classList.add("focus");
+        if (this.onFocus) this.onFocus();
     }
 
     public resize(width: number, height: number)
     {
         if (width != null) this.elem.style.width = width + "px";
         if (height != null) this.elem.style.height = height + "px";
+    }
+
+    public destroy() {
+        this.elem.remove();
+        let idx = this.otherWindows.indexOf(this);
+        if (idx !== -1) {
+            this.otherWindows.splice(idx, 1);
+        }
     }
 }

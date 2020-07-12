@@ -2,12 +2,15 @@ import earthTextureSrc from 'assets/earth.jpg';
 import sunTextureSrc from 'assets/sun.jpg';
 import mercuryTextureSrc from 'assets/mercury.jpg';
 import earthCloudsTexture from 'assets/earth_clouds.jpg';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer, Material, PickingInfo, PointerEventTypes } from "babylonjs";
+import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer, Material, PickingInfo, PointerEventTypes, LinesMesh } from "babylonjs";
 import * as $ from "jquery";
 import Body from "../models/Body";
 import { calcNetForce, integrateMotion, accelerationFromForce } from '../models/PhysicsEngine';
 import TimeControlWindow from './windows/timeControlWindow';
 import ObjectBrowserWindow from './windows/objectBrowserWindow';
+import NewObjectWindow from './windows/newObjectWindow';
+import EventEmitter from '../models/EventEmitter';
+import SimulationPropertiesWindow from './windows/simulationPropertiesWindow';
 
 export enum BodyAppearance {
     Blank = "Blank",
@@ -22,6 +25,7 @@ class Simulation {
     public scene: Scene;
     public camera: ArcRotateCamera;
     public targetBody: Body;
+    private nextId: number = 1;
 
     public get bgColor(): Color4 { return this.scene.clearColor; }
     public set bgColor(c: Color4) { this.scene.clearColor = c; }
@@ -68,19 +72,21 @@ class Simulation {
             mainTextureRatio: 0.1
         });
         gl.intensity = 0.6;
+        
+        // Register simulation with windows that need it
+        ObjectBrowserWindow.instance.attachSimulation(this);
+        NewObjectWindow.instance.attachSimulation(this);
+        SimulationPropertiesWindow.instance.attachSimulation(this);
 
         // register bodies
-        this.addBody("Sun", 100000, Vector3.Zero(), 30, BodyAppearance.Sun, Vector3.Zero(), 1000);
+        let sunBody = this.addBody("Sun", 100000, Vector3.Zero(), 30, BodyAppearance.Sun, Vector3.Zero(), 1000);
         this.addBody("Earth", 200, new Vector3(-60, 0, 0), 10, BodyAppearance.Earth, new Vector3(0, 0.0002, 0.0002));
         this.addBody("Mercury", 100, new Vector3(50, 0, 0), 10, BodyAppearance.Mercury, new Vector3(0, 0.0003, 0));
 
-        this.camera.setTarget(this.bodies[0].mesh);
+        this.target(sunBody);
 
         // Register event handlers
         scene.onPointerUp = (evt, pickInfo, type) => this.pointerUpHandler(evt, pickInfo, type);
-
-        // Register simulation with windows that need it
-        ObjectBrowserWindow.instance.attachSimulation(this);
 
         // Render loop
         let fpsLabel = document.getElementById("fpsCounter");
@@ -115,25 +121,44 @@ class Simulation {
             light.range = lightRange;
         }
 
-        let body = new Body(mesh, mass, velocity, light);
-        this.bodies.push(body);
+        let body = new Body(mesh, mass, diameter, velocity, light);
+        this.addBodies([body]);
 
         return body;
     }
 
-    public removeBody(b: Body) {
-        let idx = this.bodies.indexOf(b);
-        if (idx !== -1) {
-            this.bodies.splice(idx, 1);
-            b.mesh.dispose();
+    public addBodies(bodies: Body[]) {
+        for (let b of bodies) {
+            b.id = this.nextId;
+            this.bodies.push(b);
+            this.nextId++;
         }
-        ObjectBrowserWindow.instance.updateTable();
+        this.onAddBodies.trigger(bodies);
+    }
+
+    public removeBody(b: Body) {
+        this.removeBodies([b]);
+    }
+
+    public removeBodies(bodies: Body[]) {
+        for (let b of bodies) {
+            let idx = this.bodies.indexOf(b);
+            if (idx !== -1) {
+                this.bodies.splice(idx, 1);
+                b.mesh.dispose();
+                if (b.light) b.light.dispose();
+            }
+        }
+        this.nextId = this.bodies.length ? this.bodies[this.bodies.length - 1].id + 1 : 1;
+        this.onRemoveBodies.trigger(bodies);
     }
 
     public target(b: Body) {
-        if (!b) return;
+        if (!b || this.targetBody === b) return;
         this.targetBody = b;
         this.camera.setTarget(b.mesh);
+        this.camera.radius = b.diameter * 5;
+        this.onTargetChange.trigger(b);
     }
 
     private pointerUpHandler(evt: PointerEvent, pickInfo: PickingInfo, type: PointerEventTypes) {
@@ -142,6 +167,39 @@ class Simulation {
             this.target(b);
         }
     }
+
+    private axesLines: LinesMesh[] = null;
+    public showAxes(size: number) {
+        if (this.axesLines) this.hideAxes();
+
+        var axisX = Mesh.CreateLines("axisX", [ 
+            Vector3.Zero(), new Vector3(size, 0, 0), new Vector3(size * 0.95, 0.05 * size, 0), 
+            new Vector3(size, 0, 0), new Vector3(size * 0.95, -0.05 * size, 0)
+            ], this.scene);
+        axisX.color = new Color3(1, 0, 0);
+        var axisY = Mesh.CreateLines("axisY", [
+            Vector3.Zero(), new Vector3(0, size, 0), new Vector3( -0.05 * size, size * 0.95, 0), 
+            new Vector3(0, size, 0), new Vector3( 0.05 * size, size * 0.95, 0)
+            ], this.scene);
+        axisY.color = new Color3(0, 0, 1);
+        var axisZ = Mesh.CreateLines("axisZ", [
+            Vector3.Zero(), new Vector3(0, 0, size), new Vector3( 0 , -0.05 * size, size * 0.95),
+            new Vector3(0, 0, size), new Vector3( 0, 0.05 * size, size * 0.95)
+            ], this.scene);
+        axisZ.color = new Color3(0, 1, 0);
+
+        this.axesLines = [axisX, axisY, axisZ];
+    }
+
+    public hideAxes() {
+        this.axesLines.forEach(x => x.dispose());
+        this.axesLines = null;
+    }
+
+    // Event Stuff
+    public onAddBodies = new EventEmitter<Body[]>();
+    public onRemoveBodies = new EventEmitter<Body[]>();
+    public onTargetChange = new EventEmitter<Body>();
 }
 
 export default Simulation;
