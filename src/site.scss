@@ -178,6 +178,12 @@ canvas {
                 font-size: 14px;
                 margin-right: 8px;
             }
+            &.iconOnly i {
+                margin: 0;
+            }
+            &.toggleOn {
+                color: #ed4646;
+            }
 
             &.left {
                 float: left;
@@ -193,11 +199,11 @@ canvas {
                 }
             }
 
-            &:hover:not(.disabled) {
+            &:hover:not(:disabled) {
                 background: #313131;
             }
 
-            &.disabled {
+            &:disabled {
                 color: #6d6d6d;
             }
         }
@@ -208,7 +214,7 @@ canvas {
         }
     }
     // dragging stuff
-    .horizontal {
+    &>.horizontal {
         height: calc(100% - #{$topBarHeight} - 3px);
     }
     .rightDragHandle {
@@ -231,16 +237,42 @@ canvas {
     }
 }
 
-.infoWindow .content.timeControl {
-    .timeRange {
-        margin: 5px auto;
+.horizontal {
+    &>* {
+        float: left;
+    }
+    &.spaced>*{
+        margin-left: 8px;
+    }
+    &.spaced>*:first-child {
+        margin-left: 0;
+    }
+    &::after {
+        content: '';
+        clear: both;
         display: block;
     }
-    p {
-        margin: 0 auto;
-        text-align: center;
+}
+
+.infoWindow .content.timeControl {
+    .timeRange {
+        height: 30px;
+        margin: 0;
+        width: calc(100% - 38px);
+        float: left;
+        margin-right: 8px;
+    }
+    .pause {
+        height: 30px;
+        width: 30px;
+        float: left;
+    }
+    .setBtn {
+        height: 24px;
     }
 }
+
+
 
 .infoWindow .content.objectBrowser {
     .infoBtnCell {
@@ -290,14 +322,6 @@ form {
         color: inherit;
         padding: 3px 5px 3px 5px;
     }
-    input[type=number]::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0; 
-    }
-    input[type=number] { 
-        -moz-appearance: textfield;
-        appearance: textfield;
-    }
     .wholeLine {
         display: block;
         width: 100%;
@@ -313,4 +337,13 @@ form {
         border-bottom: 1px solid #333;
         padding-left: 10px;
     }
+}
+
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0; 
+}
+input[type=number] { 
+    -moz-appearance: textfield;
+    appearance: textfield;
 }

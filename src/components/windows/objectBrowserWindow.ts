@@ -36,7 +36,7 @@ export default class ObjectBrowserWindow extends InfoWindow {
                     </table>
                 </div>
                 <div class="actions">
-                    <button class="left deleteBtn disabled"><i class="fas fa-trash"></i>Delete selected</button>
+                    <button disabled class="left deleteBtn"><i class="fas fa-trash"></i>Delete selected</button>
                     <button class="right newBtn"><i class="fas fa-plus"></i>Add new</button>
                 </div>
             </div>`);
@@ -102,9 +102,9 @@ export default class ObjectBrowserWindow extends InfoWindow {
         }
 
         if (checkBoxes.length && [...checkBoxes].some(x => x.checked)) {
-            this.deleteBtn.classList.remove("disabled");
+            this.deleteBtn.disabled = false;
         } else {
-            this.deleteBtn.classList.add("disabled");
+            this.deleteBtn.disabled = true;
         }
     }
 

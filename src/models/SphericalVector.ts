@@ -14,9 +14,9 @@ export default class SphericalVector {
 
     public toCartesian(): Vector3 {
         return new Vector3(
-            this.radius * Math.sin(this.azimuth) * Math.cos(this.inclination),
-            this.radius * Math.sin(this.azimuth) * Math.sin(this.inclination),
-            this.radius * Math.cos(this.azimuth)
+            this.radius * Math.sin(this.inclination) * Math.cos(this.azimuth),
+            this.radius * Math.sin(this.inclination) * Math.sin(this.azimuth),
+            this.radius * Math.cos(this.inclination)
         );
     }
 

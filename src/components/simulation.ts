@@ -2,7 +2,7 @@ import earthTextureSrc from 'assets/earth.jpg';
 import sunTextureSrc from 'assets/sun.jpg';
 import mercuryTextureSrc from 'assets/mercury.jpg';
 import earthCloudsTexture from 'assets/earth_clouds.jpg';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer, Material, PickingInfo, PointerEventTypes, LinesMesh } from "babylonjs";
+import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer, Material, PickingInfo, PointerEventTypes, LinesMesh, Light } from "babylonjs";
 import * as $ from "jquery";
 import Body from "../models/Body";
 import { calcNetForce, integrateMotion, accelerationFromForce } from '../models/PhysicsEngine';
@@ -194,6 +194,20 @@ class Simulation {
     public hideAxes() {
         this.axesLines.forEach(x => x.dispose());
         this.axesLines = null;
+    }
+
+    private globalLights: HemisphericLight[];
+    public enableGlobalLight() {
+        if (this.globalLights) return;
+        this.globalLights = [
+            new HemisphericLight("Global_Up",new Vector3(0, 0, 1), this.scene),
+            new HemisphericLight("Global_Down",new Vector3(0, 0, -1), this.scene)
+        ];
+    }
+    public disableGlobalLight() {
+        if (!this.globalLights) return;
+        this.globalLights.forEach(x => x.dispose());
+        this.globalLights = null;
     }
 
     // Event Stuff

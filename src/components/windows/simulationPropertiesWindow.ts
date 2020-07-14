@@ -14,17 +14,29 @@ export default class SimulationPropertiesWindow extends InfoWindow {
         super("Simulation Properties", `
             <div class="simpPropWindow">
                 <input type="checkbox" id="showAxes" />
-                <label for="showAxes">Show global axes</label>
+                <label for="showAxes">Show global axes</label><br>
+                <input type="checkbox" id="globalLight" />
+                <label for="globalLight">Global light</label>
             </div>`);
         let showAxesCheck = this.elem.querySelector("#showAxes") as HTMLInputElement;
+        let globalLightCheck = this.elem.querySelector("#globalLight") as HTMLInputElement;
         showAxesCheck.onchange = () => {
             if (showAxesCheck.checked) this.simulation.showAxes(100);
             else this.simulation.hideAxes();
+        }
+        globalLightCheck.onchange = () => {
+            if (globalLightCheck.checked) this.simulation.enableGlobalLight();
+            else this.simulation.disableGlobalLight();
         }
     }
 
     public attachSimulation(sim: Simulation) {
         this.simulation = sim;
+
+        //TESTING ONLY - show axes by default
+        let showAxesCheck = this.elem.querySelector("#showAxes") as HTMLInputElement;
+        showAxesCheck.checked = true;
+        showAxesCheck.onchange(null);
     }
 }
 

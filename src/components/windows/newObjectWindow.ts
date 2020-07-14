@@ -68,15 +68,15 @@ export default class NewObjectWindow extends InfoWindow {
                         </select>
                         <div style="margin-top: 5px;">
                             <div style="width: calc(33% - 5px); float: left">
-                                <label>r (m):</label>
+                                <label>Radius (m):</label>
                                 <input type="number" id="posR" class="wholeLine" value="0" step="1e-10" />
                             </div>
                             <div style="width: calc(33% - 5px); float: left; margin-left: 8px; margin-right: 8px;">
-                                <label>θ (°):</label>
+                                <label>Inclination (°):</label>
                                 <input type="number" id="posTheta" class="wholeLine" value="0" step="1e-10" />
                             </div>
                             <div style="width: calc(33% - 5px); float: left">
-                                <label>φ (°):</label>
+                                <label>Azimuth (°):</label>
                                 <input type="number" id="posPhi" class="wholeLine" value="0" step="1e-10" />
                             </div>
                             <div style="clear: both;"></div> 
@@ -86,15 +86,15 @@ export default class NewObjectWindow extends InfoWindow {
                     <h1 class="subSection">Velocity</h1>
                     <div style="margin-top: 5px;">
                         <div style="width: calc(33% - 5px); float: left">
-                            <label>r (m/s):</label>
+                            <label>Radius (m/s):</label>
                             <input type="number" id="velR" class="wholeLine" value="0" step="1e-10" />
                         </div>
                         <div style="width: calc(33% - 5px); float: left; margin-left: 8px; margin-right: 8px;">
-                            <label>θ (°):</label>
+                            <label>Inclination (°):</label>
                             <input type="number" id="velTheta" class="wholeLine" value="0" step="1e-10" />
                         </div>
                         <div style="width: calc(33% - 5px); float: left">
-                            <label>φ (°):</label>
+                            <label>Azimuth (°):</label>
                             <input type="number" id="velPhi" class="wholeLine" value="0" step="1e-10" />
                         </div>
                         <div style="clear: both;"></div> 
@@ -105,8 +105,8 @@ export default class NewObjectWindow extends InfoWindow {
                     <button class="right rstBtn"><i class="fas fa-sync-alt"></i>Reset</button>
                 </div>
             </div>`);
-        this.resize(275, 481);
-        this.minSize = {width: 230, height: 120};
+        this.resize(300, 481);
+        this.minSize = {width: 300, height: 120};
 
         // Save form fields and attach onChange handler
         this.formFields = {} as FormFields;
