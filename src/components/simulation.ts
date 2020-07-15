@@ -95,10 +95,12 @@ class Simulation {
         let c = 0;
         let timeControlWindow = TimeControlWindow.instance;
         engine.runRenderLoop(() => {
-            for (let b of this.bodies) {
-                b.position = integrateMotion(b.velocity, b.position, timeControlWindow.speedValue);
-                let netForce = calcNetForce(b, this.bodies);
-                b.velocity = integrateMotion(accelerationFromForce(netForce, b.mass), b.velocity, timeControlWindow.speedValue);
+            if (timeControlWindow.speedValue !== 0) {
+                for (let b of this.bodies) {
+                    b.position = integrateMotion(b.velocity, b.position, timeControlWindow.speedValue);
+                    let netForce = calcNetForce(b, this.bodies);
+                    b.velocity = integrateMotion(accelerationFromForce(netForce, b.mass), b.velocity, timeControlWindow.speedValue);
+                }
             }
 
             scene.render();
@@ -117,13 +119,13 @@ class Simulation {
         mesh.position = position;
         mesh.material = this.materials[appearance];
         let light: PointLight = null;
-        if (lightRange != null)
+        if (lightRange != null && lightRange > 0)
         {
             light = new PointLight(name+"Light", position, this.scene);
             light.range = lightRange;
         }
 
-        let body = new Body(mesh, mass, diameter, velocity, light);
+        let body = new Body(mesh, mass, diameter, velocity, light, appearance);
         this.addBodies([body]);
 
         return body;
@@ -170,6 +172,7 @@ class Simulation {
         }
     }
 
+    public get axesVisible() { return !!this.axesLines; }
     private axesLines: LinesMesh[] = null;
     public showAxes(size: number) {
         if (this.axesLines) this.hideAxes();
@@ -198,6 +201,7 @@ class Simulation {
         this.axesLines = null;
     }
 
+    public get globalLightEnabled() { return !!this.globalLights; }
     private globalLights: HemisphericLight[];
     public enableGlobalLight() {
         if (this.globalLights) return;

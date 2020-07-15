@@ -1,6 +1,11 @@
-import htmlToElement from "../../utilities/htmlToElement";
 import InfoWindow from "./infoWindow";
 import Simulation from "../simulation";
+import SerializableSimulation from "../../models/Serialization/SerializableSimulation";
+import { saveAs } from 'file-saver';
+import htmlToElement from "../../utilities/htmlToElement";
+import openFileDialog from "../../utilities/openFileDialog";
+import ErrorWindow from "./errorWindow";
+import { Vector3 } from "babylonjs";
 
 export default class FileWindow extends InfoWindow {
     private static _instance: FileWindow
@@ -27,11 +32,48 @@ export default class FileWindow extends InfoWindow {
     }
 
     private saveAs() {
-
+        let sim = new SerializableSimulation(this.simulation);
+        var blob = new Blob([JSON.stringify(sim)], {type: "text/plain;charset=utf-8"});
+        saveAs(blob, "Web-Orbits.json");
     }
 
-    private openFile() {
+    private async openFile() {
+        let files = await openFileDialog(".json", false);
+        if (files) {
+            let file = files.item(0);
+            if (file.type !== "application/json") {
+                new ErrorWindow("File just be a JSON file", this);
+                return;
+            }
 
+            let ssim = JSON.parse(await file.text()) as SerializableSimulation;
+            this.loadIntoSimulation(ssim);
+        }
+    }
+
+    private loadIntoSimulation(ssim: SerializableSimulation) {
+        try {
+            if (ssim.globalLightEnabled) this.simulation.enableGlobalLight();
+            else this.simulation.disableGlobalLight();
+
+            if (ssim.axesVisible) this.simulation.showAxes(100);
+            else this.simulation.hideAxes();
+
+            this.simulation.removeBodies([...this.simulation.bodies]);
+            for (let b of ssim.bodies) {
+                this.simulation.addBody(
+                    b.name, 
+                    b.mass, 
+                    new Vector3(b.position.x, b.position.y, b.position.z), 
+                    b.diameter, 
+                    b.appearance, 
+                    new Vector3(b.velocity.x, b.velocity.y, b.velocity.z), 
+                    b.lightRange
+                );
+            }
+        } catch {
+            new ErrorWindow("Corrupt save file", this);
+        }
     }
 }
 

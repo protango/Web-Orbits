@@ -6,6 +6,7 @@ import ObjectInfoWindow from "./windows/objectInfoWindow";
 import NewObjectWindow from "./windows/newObjectWindow";
 import SimulationPropertiesWindow from "./windows/simulationPropertiesWindow";
 import FileWindow from "./windows/fileWindow";
+import TerminalWindow from "./windows/terminalWindow";
 
 export class MenuBarItem {
     public elem : HTMLDivElement;
@@ -37,6 +38,7 @@ export default class MenuBar {
         this.AddItem(new MenuBarItem("Object Info", "fas fa-info-circle", ObjectInfoWindow.instance));
         this.AddItem(new MenuBarItem("New Object", "fas fa-plus", NewObjectWindow.instance));
         this.AddItem(new MenuBarItem("Simulation Properties", "fas fa-sliders-h", SimulationPropertiesWindow.instance));
+        this.AddItem(new MenuBarItem("Debug Terminal", "fas fa-terminal", TerminalWindow.instance));
 
         // give each window a reference to the other windows
         for (let mbi of this.items)

@@ -27,7 +27,7 @@ export default class ObjectBrowserWindow extends InfoWindow {
                                 <th style="width: 30px;">Id</th>
                                 <th>Name</th>
                                 <th>Mass (kg)</th>
-                                <th>Diamester (m)</th>
+                                <th>Diameter (m)</th>
                                 <th style="width: 30px;"></th>
                             </tr>
                         </thead>

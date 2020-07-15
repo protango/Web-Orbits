@@ -1,6 +1,7 @@
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer } from "babylonjs";
 import { PhysicsObject } from "./PhysicsObject";
 import EventEmitter from "./EventEmitter";
+import { BodyAppearance } from "../components/simulation";
 
 class Body implements PhysicsObject {
     // Private fields
@@ -32,14 +33,16 @@ class Body implements PhysicsObject {
         this.mesh.scaling.y = this.scale;
         this.mesh.scaling.z = this.scale;
     }
+    public appearance: BodyAppearance;
 
 
-    constructor(mesh: Mesh, mass: number, diameter: number, velocity: Vector3 = null, light: PointLight = null) {
+    constructor(mesh: Mesh, mass: number, diameter: number, velocity: Vector3 = null, light: PointLight = null, appearance: BodyAppearance = null) {
         this._mesh = mesh;
         this.velocity = velocity === null ? new Vector3(0, 0, 0) : velocity;
         this._light = light;
         this.mass = mass;
         this.originalDiamater = this.currentDiamater = diameter;
+        this.appearance = appearance;
     }
 
     //Events

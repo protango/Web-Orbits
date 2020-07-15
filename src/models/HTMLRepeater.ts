@@ -1,9 +1,9 @@
 export default class HTMLRepeater<T> {
-    private elems: Map<T, HTMLElement> = new Map<T, HTMLElement>();
-    private elementFactory: (obj: T) => HTMLElement;
-    private container: HTMLElement;
+    private elems: Map<T, Element> = new Map<T, Element>();
+    private elementFactory: (obj: T) => Element;
+    private container: Element;
 
-    constructor(elementFactory: (obj: T) => HTMLElement, container: HTMLElement, items: T[]) {
+    constructor(elementFactory: (obj: T) => Element, container: Element, items: T[]) {
         this.elementFactory = elementFactory;
         this.container = container;
 
