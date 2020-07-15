@@ -11,6 +11,7 @@ import ObjectBrowserWindow from './windows/objectBrowserWindow';
 import NewObjectWindow from './windows/newObjectWindow';
 import EventEmitter from '../models/EventEmitter';
 import SimulationPropertiesWindow from './windows/simulationPropertiesWindow';
+import FileWindow from './windows/fileWindow';
 
 export enum BodyAppearance {
     Blank = "Blank",
@@ -77,6 +78,7 @@ class Simulation {
         ObjectBrowserWindow.instance.attachSimulation(this);
         NewObjectWindow.instance.attachSimulation(this);
         SimulationPropertiesWindow.instance.attachSimulation(this);
+        FileWindow.instance.attachSimulation(this);
 
         // register bodies
         let sunBody = this.addBody("Sun", 100000, Vector3.Zero(), 30, BodyAppearance.Sun, Vector3.Zero(), 1000);

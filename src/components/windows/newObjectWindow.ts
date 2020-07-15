@@ -105,8 +105,8 @@ export default class NewObjectWindow extends InfoWindow {
                     <button class="right rstBtn"><i class="fas fa-sync-alt"></i>Reset</button>
                 </div>
             </div>`);
-        this.resize(300, 481);
-        this.minSize = {width: 300, height: 120};
+        this.resize(305, 481);
+        this.minSize = {width: 305, height: 120};
 
         // Save form fields and attach onChange handler
         this.formFields = {} as FormFields;

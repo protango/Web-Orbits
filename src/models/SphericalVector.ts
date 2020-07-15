@@ -15,8 +15,8 @@ export default class SphericalVector {
     public toCartesian(): Vector3 {
         return new Vector3(
             this.radius * Math.sin(this.inclination) * Math.cos(this.azimuth),
-            this.radius * Math.sin(this.inclination) * Math.sin(this.azimuth),
-            this.radius * Math.cos(this.inclination)
+            this.radius * Math.cos(this.inclination),
+            this.radius * Math.sin(this.inclination) * Math.sin(this.azimuth)
         );
     }
 
@@ -28,8 +28,8 @@ export default class SphericalVector {
         let r = Math.sqrt(x^2 + y^2 + z^2);
         return new SphericalVector(
             r,
-            Math.atan(y/x),
-            Math.acos(z/r)
+            Math.atan(z/x),
+            Math.acos(y/r)
         );
     }
 }
