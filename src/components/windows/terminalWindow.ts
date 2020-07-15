@@ -2,6 +2,7 @@ import InfoWindow from "./infoWindow";
 import Simulation from "../simulation";
 import SerializableBody from "../../models/Serialization/SerializableBody";
 import SerializableSimulation from "../../models/Serialization/SerializableSimulation";
+import FileWindow from "./fileWindow";
 
 export default class TerminalWindow extends InfoWindow {
     private static _instance: TerminalWindow
@@ -74,12 +75,11 @@ export default class TerminalWindow extends InfoWindow {
             } as SerializableBody);
         }
         let ssim = {
-            globalLightEnabled: false,
+            globalLightEnabled: true,
             axesVisible: true,
             bodies: bodies
         } as SerializableSimulation;
 
-        var blob = new Blob([JSON.stringify(ssim)], {type: "text/plain;charset=utf-8"});
-        saveAs(blob, "Web-Orbits.json");
+        FileWindow.instance.loadIntoSimulation(ssim);
     }
 }

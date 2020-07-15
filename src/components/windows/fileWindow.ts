@@ -51,13 +51,15 @@ export default class FileWindow extends InfoWindow {
         }
     }
 
-    private loadIntoSimulation(ssim: SerializableSimulation) {
+    public loadIntoSimulation(ssim: SerializableSimulation) {
         try {
-            if (ssim.globalLightEnabled) this.simulation.enableGlobalLight();
-            else this.simulation.disableGlobalLight();
+            let showAxes = document.querySelector(".simpPropWindow #showAxes") as HTMLInputElement
+            showAxes.checked = ssim.axesVisible;
+            showAxes.onchange(null);
 
-            if (ssim.axesVisible) this.simulation.showAxes(100);
-            else this.simulation.hideAxes();
+            let globalLight = document.querySelector(".simpPropWindow #globalLight") as HTMLInputElement
+            globalLight.checked = ssim.globalLightEnabled;
+            globalLight.onchange(null);
 
             this.simulation.removeBodies([...this.simulation.bodies]);
             for (let b of ssim.bodies) {
