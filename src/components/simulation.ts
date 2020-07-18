@@ -5,13 +5,14 @@ import earthCloudsTexture from 'assets/earth_clouds.jpg';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer, Material, PickingInfo, PointerEventTypes, LinesMesh, Light } from "babylonjs";
 import * as $ from "jquery";
 import Body from "../models/Body";
-import { calcNetForce, integrateMotion, accelerationFromForce } from '../models/PhysicsEngine';
+import { calcNetForce, integrateMotion, accelerationFromForce, vectorMagnitude } from '../models/PhysicsEngine';
 import TimeControlWindow from './windows/timeControlWindow';
 import ObjectBrowserWindow from './windows/objectBrowserWindow';
 import NewObjectWindow from './windows/newObjectWindow';
 import EventEmitter from '../models/EventEmitter';
 import SimulationPropertiesWindow from './windows/simulationPropertiesWindow';
 import FileWindow from './windows/fileWindow';
+import { GPU, IKernelRunShortcut } from 'gpu.js';
 
 export enum BodyAppearance {
     Blank = "Blank",
@@ -32,6 +33,7 @@ class Simulation {
     public set bgColor(c: Color4) { this.scene.clearColor = c; }
 
     private materials : {[key in BodyAppearance]: Material};
+    private gpuKernel: IKernelRunShortcut;
 
     constructor() {
         this.elem = document.createElement("canvas");
@@ -90,17 +92,69 @@ class Simulation {
         // Register event handlers
         scene.onPointerUp = (evt, pickInfo, type) => this.pointerUpHandler(evt, pickInfo, type);
 
+        // Create GPU kernel
+        type Point3DTuple = [number, number, number];
+        let gpu = new GPU();
+        function gpuVectorAdd(v1: Point3DTuple, v2: Point3DTuple): Point3DTuple { return [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]]; }
+        function gpuVectorSubtract(v1: Point3DTuple, v2: Point3DTuple): Point3DTuple { return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]]; }
+        function gpuVectorMultiply(v1: Point3DTuple, n: number): Point3DTuple { return [v1[0] * n, v1[1] * n, v1[2] * n]; }
+        function gpuVectorDivide(v1: Point3DTuple, n: number): Point3DTuple { return [v1[0] / n, v1[1] / n, v1[2] / n]; }
+        function gpuVectorMagnitude(v: Point3DTuple): number { return Math.sqrt(Math.pow(v[0], 2) + Math.pow(v[1], 2) + Math.pow(v[2], 2)); }
+        function gpuIntegrateMotion(a: Point3DTuple, initial: Point3DTuple, dt: number): Point3DTuple { return gpuVectorAdd(gpuVectorMultiply(a, dt), initial); }
+        gpu.addFunction(gpuVectorAdd, { argumentTypes: { v1: 'Array(3)', v2: 'Array(3)'}, returnType: 'Array(3)' });
+        gpu.addFunction(gpuVectorSubtract, { argumentTypes: { v1: 'Array(3)', v2: 'Array(3)'}, returnType: 'Array(3)' });
+        gpu.addFunction(gpuVectorMultiply, { argumentTypes: { v1: 'Array(3)', n: 'Float'}, returnType: 'Array(3)' });
+        gpu.addFunction(gpuVectorDivide, { argumentTypes: { v1: 'Array(3)', n: 'Float'}, returnType: 'Array(3)' });
+        gpu.addFunction(gpuVectorMagnitude, { argumentTypes: { v1: 'Array(3)' }, returnType: 'Float' });
+        gpu.addFunction(gpuIntegrateMotion, { argumentTypes: { a: 'Array(3)', initial: 'Array(3)', dt: 'Float' }, returnType: 'Array(3)' });
+        this.gpuKernel = gpu.createKernel(function (bodyPositions: Point3DTuple[], bodyVelocities: Point3DTuple[], bodyMasses: number[], dt: number, n: number) {
+            let netForce = [0, 0, 0] as Point3DTuple;
+            for (let i = 0; i < n; i++) {
+                if (i !== this.thread.x) {
+                    let bPos = bodyPositions[this.thread.x], obPos = bodyPositions[i];
+                    let p2pVect = gpuVectorSubtract(obPos, bPos);
+                    let distance = gpuVectorMagnitude(p2pVect);
+                    let forceVector = gpuVectorMultiply(p2pVect, (6.67408e-11 * bodyMasses[this.thread.x] * bodyMasses[i]) / Math.pow(distance, 3));
+                    netForce = gpuVectorAdd(netForce, forceVector);
+                }
+            }
+
+            let newVelocity = gpuIntegrateMotion(gpuVectorDivide(netForce, bodyMasses[this.thread.x]), bodyVelocities[this.thread.x], dt);
+            return newVelocity;
+        }, {
+            dynamicOutput: true,
+            constants: { G: 6.67408e-11 },
+            output: [this.bodies.length],
+            argumentTypes: { bodyPositions: 'Array2D(3)', bodyVelocities: 'Array2D(3)', bodyMasses: 'Array', dt: 'Float', n: 'Integer'},
+        });
+
+        this.onAddBodies.addHandler(() => this.gpuKernel.setOutput([this.bodies.length]));
+        this.onRemoveBodies.addHandler(() => this.gpuKernel.setOutput([this.bodies.length]));
+
         // Render loop
         let fpsLabel = document.getElementById("fpsCounter");
         let c = 0;
         let timeControlWindow = TimeControlWindow.instance;
         engine.runRenderLoop(() => {
-            if (timeControlWindow.speedValue !== 0) {
-                for (let b of this.bodies) {
+            if (timeControlWindow.speedValue !== 0 && this.bodies.length) {
+                let newVelocities: Point3DTuple[] = this.gpuKernel(
+                    this.bodies.map(x => [x.position.x, x.position.y, x.position.z]), 
+                    this.bodies.map(x => [x.velocity.x, x.velocity.y, x.velocity.z]), 
+                    this.bodies.map(x => x.mass),
+                    timeControlWindow.speedValue,
+                    this.bodies.length) as Point3DTuple[];
+
+                for (let i = 0; i<this.bodies.length; i++) {
+                    let b = this.bodies[i];
+                    b.position = integrateMotion(b.velocity, b.position, timeControlWindow.speedValue);
+                    b.velocity = new Vector3(newVelocities[i][0], newVelocities[i][1], newVelocities[i][2]);
+                }
+
+                /*for (let b of this.bodies) {
                     b.position = integrateMotion(b.velocity, b.position, timeControlWindow.speedValue);
                     let netForce = calcNetForce(b, this.bodies);
                     b.velocity = integrateMotion(accelerationFromForce(netForce, b.mass), b.velocity, timeControlWindow.speedValue);
-                }
+                }*/
             }
 
             scene.render();

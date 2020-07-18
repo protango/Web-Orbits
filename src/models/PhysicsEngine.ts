@@ -2,7 +2,7 @@ import Body from "./Body";
 import { Vector3 } from "babylonjs";
 import { PhysicsObject } from "./PhysicsObject";
 
-const G = 6.67408 * Math.pow(10, -11);
+const G = 6.67408e-11;
 
 function calcNetForce(body: PhysicsObject, allBodies: PhysicsObject[]): Vector3 {
     let result: Vector3 = Vector3.Zero();

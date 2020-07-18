@@ -3,6 +3,7 @@ import Simulation from "../simulation";
 import SerializableBody from "../../models/Serialization/SerializableBody";
 import SerializableSimulation from "../../models/Serialization/SerializableSimulation";
 import FileWindow from "./fileWindow";
+import { GPU } from 'gpu.js';
 
 export default class TerminalWindow extends InfoWindow {
     private static _instance: TerminalWindow
@@ -81,5 +82,25 @@ export default class TerminalWindow extends InfoWindow {
         } as SerializableSimulation;
 
         FileWindow.instance.loadIntoSimulation(ssim);
+    }
+
+    private fullLoad() {
+        let data = new Array<number>(10000);
+        for (let i = 0; i < 100000; i++) {
+            data[i] = Math.floor(Math.random() * 10) + 1;
+        }
+
+        let gpu = new GPU();
+        let kernel = gpu.createKernel(function (a: number[]) {
+            let sum = a[this.thread.x];
+            for (let i = 0; i<100000; i++) {
+                if (i !== this.thread.x) {
+                    sum += a[i];
+                }
+            }
+            return sum;
+        }).setOutput([100000]);
+        
+        console.log(kernel(data));
     }
 }

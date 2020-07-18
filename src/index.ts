@@ -15,3 +15,11 @@ document.body.appendChild(
 
 var main = new Simulation();
 var menuBar = new MenuBar();
+
+export function getSimulation() {
+    return main;
+};
+
+export function getMenuBar() {
+    return menuBar;
+};
