@@ -5,7 +5,7 @@ import earthCloudsTexture from 'assets/earth_clouds.jpg';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer, Material, PickingInfo, PointerEventTypes, LinesMesh, Light } from "babylonjs";
 import * as $ from "jquery";
 import Body from "../models/Body";
-import { calcNetForce, integrateMotion, accelerationFromForce, vectorMagnitude } from '../models/PhysicsEngine';
+import { calcNetForce, integrateMotion, accelerationFromForce, vectorMagnitude, vectorDivide } from '../models/PhysicsEngine';
 import TimeControlWindow from './windows/timeControlWindow';
 import ObjectBrowserWindow from './windows/objectBrowserWindow';
 import NewObjectWindow from './windows/newObjectWindow';
@@ -107,29 +107,34 @@ class Simulation {
         gpu.addFunction(gpuVectorDivide, { argumentTypes: { v1: 'Array(3)', n: 'Float'}, returnType: 'Array(3)' });
         gpu.addFunction(gpuVectorMagnitude, { argumentTypes: { v1: 'Array(3)' }, returnType: 'Float' });
         gpu.addFunction(gpuIntegrateMotion, { argumentTypes: { a: 'Array(3)', initial: 'Array(3)', dt: 'Float' }, returnType: 'Array(3)' });
-        this.gpuKernel = gpu.createKernel(function (bodyPositions: Point3DTuple[], bodyVelocities: Point3DTuple[], bodyMasses: number[], dt: number, n: number) {
-            let netForce = [0, 0, 0] as Point3DTuple;
-            for (let i = 0; i < n; i++) {
-                if (i !== this.thread.x) {
-                    let bPos = bodyPositions[this.thread.x], obPos = bodyPositions[i];
-                    let p2pVect = gpuVectorSubtract(obPos, bPos);
-                    let distance = gpuVectorMagnitude(p2pVect);
-                    let forceVector = gpuVectorMultiply(p2pVect, (6.67408e-11 * bodyMasses[this.thread.x] * bodyMasses[i]) / Math.pow(distance, 3));
-                    netForce = gpuVectorAdd(netForce, forceVector);
+        
+        let createKernel = () => {
+            this.gpuKernel = gpu.createKernel(function (posFlat: number[], masses: number[], n: number) {
+                let netForce = [0.0, 0.0, 0.0] as Point3DTuple;
+                for (let i = 0; i < n; i++) {
+                    if (i !== this.thread.x) {
+                        let bp = [posFlat[this.thread.x * 3 + 0], posFlat[this.thread.x * 3 + 1], posFlat[this.thread.x * 3 + 2]];
+                        let obp = [posFlat[i * 3 + 0], posFlat[i * 3 + 1], posFlat[i * 3 + 2]];
+                        
+                        let p2pVect = [obp[0] - bp[0], obp[1] - bp[1], obp[2] - bp[2]] as [number, number, number];
+                        let distance = Math.sqrt(Math.pow(p2pVect[0], 2) + Math.pow(p2pVect[1], 2) + Math.pow(p2pVect[2], 2));
+                        let m = (6.67408e-11 * masses[this.thread.x] * masses[i]) / Math.pow(distance, 3);
+                        netForce[0] += p2pVect[0] * m;
+                        netForce[1] += p2pVect[1] * m;
+                        netForce[2] += p2pVect[2] * m;
+                    }
                 }
-            }
-
-            let newVelocity = gpuIntegrateMotion(gpuVectorDivide(netForce, bodyMasses[this.thread.x]), bodyVelocities[this.thread.x], dt);
-            return newVelocity;
-        }, {
-            dynamicOutput: true,
-            constants: { G: 6.67408e-11 },
-            output: [this.bodies.length],
-            argumentTypes: { bodyPositions: 'Array2D(3)', bodyVelocities: 'Array2D(3)', bodyMasses: 'Array', dt: 'Float', n: 'Integer'},
-        });
-
-        this.onAddBodies.addHandler(() => this.gpuKernel.setOutput([this.bodies.length]));
-        this.onRemoveBodies.addHandler(() => this.gpuKernel.setOutput([this.bodies.length]));
+    
+                return netForce;
+            }, {
+                output: [this.bodies.length],
+                tactic: "precision",
+                precision: "single"
+            });
+        }
+        createKernel();
+        this.onAddBodies.addHandler(() => createKernel());
+        this.onRemoveBodies.addHandler(() => createKernel());
 
         // Render loop
         let fpsLabel = document.getElementById("fpsCounter");
@@ -137,17 +142,18 @@ class Simulation {
         let timeControlWindow = TimeControlWindow.instance;
         engine.runRenderLoop(() => {
             if (timeControlWindow.speedValue !== 0 && this.bodies.length) {
-                let newVelocities: Point3DTuple[] = this.gpuKernel(
-                    this.bodies.map(x => [x.position.x, x.position.y, x.position.z]), 
-                    this.bodies.map(x => [x.velocity.x, x.velocity.y, x.velocity.z]), 
+                let newNetForces = this.gpuKernel(
+                    this.bodies.map(x => [x.position.x, x.position.y, x.position.z]).flat(),
                     this.bodies.map(x => x.mass),
-                    timeControlWindow.speedValue,
                     this.bodies.length) as Point3DTuple[];
 
                 for (let i = 0; i<this.bodies.length; i++) {
                     let b = this.bodies[i];
+                    let netForce = new Vector3(newNetForces[i][0], newNetForces[i][1], newNetForces[i][2]);
+                    
                     b.position = integrateMotion(b.velocity, b.position, timeControlWindow.speedValue);
-                    b.velocity = new Vector3(newVelocities[i][0], newVelocities[i][1], newVelocities[i][2]);
+                    //let realNetForce = calcNetForce(b, this.bodies);
+                    b.velocity = integrateMotion(vectorDivide(netForce, b.mass), b.velocity, timeControlWindow.speedValue);
                 }
 
                 /*for (let b of this.bodies) {
