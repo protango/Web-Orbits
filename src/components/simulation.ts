@@ -13,6 +13,7 @@ import EventEmitter from '../models/EventEmitter';
 import SimulationPropertiesWindow from './windows/simulationPropertiesWindow';
 import FileWindow from './windows/fileWindow';
 import { GPU, IKernelRunShortcut } from 'gpu.js';
+import TerminalWindow from './windows/terminalWindow';
 
 export enum BodyAppearance {
     Blank = "Blank",
@@ -33,6 +34,7 @@ class Simulation {
 
     public get bgColor(): Color4 { return this.scene.clearColor; }
     public set bgColor(c: Color4) { this.scene.clearColor = c; }
+    public forceMode: "GPU" | "CPU" = null;
 
     private materials : {[key in BodyAppearance]: Material};
     private gpuKernel: IKernelRunShortcut;
@@ -83,6 +85,7 @@ class Simulation {
         NewObjectWindow.instance.attachSimulation(this);
         SimulationPropertiesWindow.instance.attachSimulation(this);
         FileWindow.instance.attachSimulation(this);
+        TerminalWindow.instance.attachSimulation(this);
 
         // register bodies
         let sunBody = this.addBody("Sun", 100000, Vector3.Zero(), 30, BodyAppearance.Sun, Vector3.Zero(), 1000);
@@ -101,7 +104,7 @@ class Simulation {
         engine.runRenderLoop(() => {
             if (timeControlWindow.speedValue !== 0 && this.bodies.length) {
                 let netForces: Vector3[];
-                if (this.bodies.length > 200) {
+                if ((this.bodies.length > 200 && this.forceMode !== "CPU") || this.forceMode === "GPU") {
                     let gpuOuput = this.getGpuKernel()(
                         this.bodies.map(x => [x.position.x, x.position.y, x.position.z]).flat(),
                         this.bodies.map(x => x.mass)) as Point3DTuple[];
@@ -263,10 +266,12 @@ class Simulation {
                         
                         let p2pVect = [obp[0] - bp[0], obp[1] - bp[1], obp[2] - bp[2]] as [number, number, number];
                         let distance = Math.sqrt(Math.pow(p2pVect[0], 2) + Math.pow(p2pVect[1], 2) + Math.pow(p2pVect[2], 2));
-                        let m = (6.67408e-11 * masses[this.thread.x] * masses[i]) / Math.pow(distance, 3);
-                        netForce[0] += p2pVect[0] * m;
-                        netForce[1] += p2pVect[1] * m;
-                        netForce[2] += p2pVect[2] * m;
+                        if (distance >= 0.1) { // ignore forces between collided bodies 
+                            let m = (6.67408e-11 * masses[this.thread.x] * masses[i]) / Math.pow(distance, 3);
+                            netForce[0] += p2pVect[0] * m;
+                            netForce[1] += p2pVect[1] * m;
+                            netForce[2] += p2pVect[2] * m;
+                        }
                     }
                 }
     

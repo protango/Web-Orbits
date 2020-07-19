@@ -18,16 +18,17 @@ export default class TerminalWindow extends InfoWindow {
 
     private constructor() {
         super("Debug Terminal", `
-                <div>
+                <div style="font-family: monospace">
                     <div class="termScroll" style="overflow-y: auto; overflow-x: hidden; height: calc(100% - 21px);">
-                        <span style="display: block;white-space: nowrap;" class="termOutput"></span>
+                        <span style="display: block;white-space: nowrap;" class="termOutput">Debug terminal ready</span>
                     </div>
-                    <input type="text" class="termInput" style="width: 100%;box-sizing: border-box;font-family: monospace;height: 21px; background: black; color: white; border: none" />
+                    <span style="line-height: 21px;">></span>
+                    <input type="text" class="termInput" style="width: calc(100% - 20px);box-sizing: border-box;height: 21px; background: black; color: #c4c4c4; border: none; font-family: monospace" />
                 </div>`);
         this.termScroll = this.elem.querySelector(".termScroll");
         this.termOutput = this.elem.querySelector(".termOutput");
         this.termInput = this.elem.querySelector(".termInput");
-
+        this.resize(400,140);
         this.onFocus = () => {
             this.termInput.focus();
         }
@@ -48,7 +49,7 @@ export default class TerminalWindow extends InfoWindow {
         let parts = input.split(" ");
         let func = this[parts[0]];
         if (func && typeof func === "function") {
-            func(...parts.slice(1).map(x => Number(x)));
+            func(...parts.slice(1), this);
         }
     }
 
@@ -57,8 +58,8 @@ export default class TerminalWindow extends InfoWindow {
         this.termScroll.scrollTop = this.termScroll.scrollHeight;
     }
 
-    private generate(n: number) {
-        let lb = -Math.floor(n / 2);
+    private generate(n: string, self: TerminalWindow) {
+        let lb = -Math.floor(Number(n) / 2);
         let ub = -lb;
         let idx = 0;
         let bodies: SerializableBody[] = [];
@@ -82,25 +83,20 @@ export default class TerminalWindow extends InfoWindow {
         } as SerializableSimulation;
 
         FileWindow.instance.loadIntoSimulation(ssim);
+        self.writeLine("Generated " + Math.pow(ub * 2 + 1, 3) + " bodies");
     }
 
-    private fullLoad() {
-        let data = new Array<number>(10000);
-        for (let i = 0; i < 100000; i++) {
-            data[i] = Math.floor(Math.random() * 10) + 1;
+    private forcemode(mode: string, self: TerminalWindow) {
+        let mdUp = mode.toUpperCase();
+        if (mdUp === "CPU" || mdUp === "GPU") {
+            self.simulation.forceMode = mdUp;
+            self.writeLine("Forcing " + mdUp + " computation");
+        } else if (mdUp === "AUTO") {
+            self.simulation.forceMode = null;
+            self.writeLine("Comutation mode set to auto");
+        } else {
+            self.writeLine("Invalid mode, must be CPU, GPU or Auto");
         }
 
-        let gpu = new GPU();
-        let kernel = gpu.createKernel(function (a: number[]) {
-            let sum = a[this.thread.x];
-            for (let i = 0; i<100000; i++) {
-                if (i !== this.thread.x) {
-                    sum += a[i];
-                }
-            }
-            return sum;
-        }).setOutput([100000]);
-        
-        console.log(kernel(data));
     }
 }

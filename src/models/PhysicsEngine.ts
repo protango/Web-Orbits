@@ -10,8 +10,10 @@ function calcNetForce(body: PhysicsObject, allBodies: PhysicsObject[]): Vector3 
         if (otherBody === body) continue;
         let p2pVect = vectorSubtract(otherBody.position, body.position);
         let distance = vectorMagnitude(p2pVect);
-        let forceVector = vectorMultiply(p2pVect, (G * body.mass * otherBody.mass) / Math.pow(distance, 3))
-        result = vectorAdd(result, forceVector);
+        if (distance >= 0.1) { // ignore forces between collided bodies 
+            let forceVector = vectorMultiply(p2pVect, (G * body.mass * otherBody.mass) / Math.pow(distance, 3))
+            result = vectorAdd(result, forceVector);
+        }
     }
     return result;
 }
