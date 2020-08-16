@@ -39,7 +39,7 @@ class Simulation {
     public set bgColor(c: Color4) { this.scene.clearColor = c; }
     public forceMode: "GPU" | "CPU" = null;
     public renderMode: "2D" | "3D" = "3D";
-    public spriteManager: SpriteManager = null;
+    public spriteManagers: SpriteManager[] = [];
 
     public materials : {[key in BodyAppearance]: Material};
     private gpuKernel: IKernelRunShortcut;
@@ -122,6 +122,10 @@ class Simulation {
                     let b = this.bodies[i];
                     b.velocity = integrateMotion(vectorDivide(netForces[i], b.mass), b.velocity, timeControlWindow.speedValue);
                     b.position = integrateMotion(b.velocity, b.position, timeControlWindow.speedValue);
+                }
+
+                if (this.targetBody instanceof Body2D) {
+                    this.camera.setTarget(this.targetBody.position);
                 }
 
                 /*for (let b of this.bodies) {
@@ -208,12 +212,21 @@ class Simulation {
             let b = this.bodies.find(x => {
                 if (x instanceof Body3D) 
                     return x.mesh === pickInfo.pickedMesh;
-                else if (x instanceof Body2D)
-                    return x.sprite === pickInfo.pickedSprite;
                 else
                     return false;
             });
             this.setTarget(b);
+        } else {
+            let pickResult = this.scene.pickSprite(evt.x, evt.y);
+            if (pickResult.hit) {
+                let b = this.bodies.find(x => {
+                    if (x instanceof Body2D) 
+                        return x.mesh === pickResult.pickedSprite;
+                    else
+                        return false;
+                });
+                this.setTarget(b);
+            }
         }
     }
 
@@ -293,17 +306,43 @@ class Simulation {
         return this.gpuKernel;
     }
 
+    private cullSpriteManagers() {
+        for (let i = 0; i<this.spriteManagers.length; i++) {
+            let manager = this.spriteManagers[i];
+            if (manager.sprites.length === 0) {
+                manager.dispose();
+                this.spriteManagers.splice(i, 1);
+                i--;
+            }
+        }
+    }
+
+    public cullSpriteManager(manager: SpriteManager) {
+        if (manager.sprites.length === 0) {
+            let idx  = this.spriteManagers.indexOf(manager);
+            if (idx >= 0) {
+                manager.dispose();
+                this.spriteManagers.splice(idx, 1);
+            }
+        }
+    }
+
+    public getAvailableSpriteManager() {
+        if (this.spriteManagers.length) {
+            let candidate = this.spriteManagers[this.spriteManagers.length - 1];
+            if (candidate.sprites.length < 20000) return candidate;
+        }
+        let newSpriteManager = new SpriteManager("bodySpriteManager" + (this.spriteManagers.length + 1), whiteCircleSrc, 20000, 512, this.scene);
+        newSpriteManager.isPickable = true;
+        this.spriteManagers.push(newSpriteManager);
+        return this.spriteManagers[this.spriteManagers.length - 1];
+    }
+
     public setRenderMode(mode: "2D"|"3D") {
         let newBodies: IBody[] = null;
         if (this.renderMode === "2D" && mode === "3D") {
-            this.spriteManager.dispose();
-            this.spriteManager = null;
             newBodies = this.bodies.map(x => Body3D.copyFrom(x, this));
         } else if (this.renderMode === "3D" && mode === "2D") {
-            if (!this.spriteManager) {
-                this.spriteManager = new SpriteManager("bodySpriteManager", whiteCircleSrc, 20000, 512, this.scene);
-                this.spriteManager.isPickable = true;
-            }
             newBodies = this.bodies.map(x => Body2D.copyFrom(x, this));
         }
         if (newBodies !== null) {
