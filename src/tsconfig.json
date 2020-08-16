@@ -8,7 +8,8 @@
         "babylonjs"
       ],
       "jsx": "react-native",
-      "lib": ["DOM", "DOM.Iterable", "webworker", "es6", "scripthost", "es2017", "es2019"]
+      "lib": ["DOM", "DOM.Iterable", "webworker", "es6", "scripthost", "es2017", "es2019"],
+      "esModuleInterop": true
     },
     "include": [
       "./**/*.ts"

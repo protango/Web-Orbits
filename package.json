@@ -24,6 +24,7 @@
     "babylonjs": "^4.1.0",
     "compression": "^1.7.4",
     "express": "^4.17.1",
+    "fast-average-color": "^6.0.2",
     "file-saver": "^2.0.2",
     "gpu.js": "^2.9.4",
     "jquery": "^3.4.1",

@@ -4,7 +4,7 @@ import mercuryTextureSrc from 'assets/mercury.jpg';
 import earthCloudsTexture from 'assets/earth_clouds.jpg';
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer, Material, PickingInfo, PointerEventTypes, LinesMesh, Light } from "babylonjs";
 import * as $ from "jquery";
-import Body from "../models/Body";
+import Body3D from "../models/Body/Body3D";
 import { calcNetForce, integrateMotion, accelerationFromForce, vectorMagnitude, vectorDivide } from '../models/PhysicsEngine';
 import TimeControlWindow from './windows/timeControlWindow';
 import ObjectBrowserWindow from './windows/objectBrowserWindow';
@@ -14,6 +14,7 @@ import SimulationPropertiesWindow from './windows/simulationPropertiesWindow';
 import FileWindow from './windows/fileWindow';
 import { GPU, IKernelRunShortcut } from 'gpu.js';
 import TerminalWindow from './windows/terminalWindow';
+import FastAverageColor from 'fast-average-color';
 
 export enum BodyAppearance {
     Blank = "Blank",
@@ -25,11 +26,11 @@ export enum BodyAppearance {
 type Point3DTuple = [number, number, number];
 
 class Simulation {
-    public bodies: Body[] = [];
+    public bodies: Body3D[] = [];
     public elem : HTMLCanvasElement;
     public scene: Scene;
     public camera: ArcRotateCamera;
-    public targetBody: Body;
+    public targetBody: Body3D;
     private nextId: number = 1;
 
     public get bgColor(): Color4 { return this.scene.clearColor; }
@@ -137,7 +138,7 @@ class Simulation {
         window.addEventListener("resize", function(){engine.resize();});
     }
 
-    public addBody(name: string, mass: number, position: Vector3, diameter: number, appearance: BodyAppearance, velocity: Vector3 = null, lightRange: number = null): Body {
+    public addBody(name: string, mass: number, position: Vector3, diameter: number, appearance: BodyAppearance, velocity: Vector3 = null, lightRange: number = null): Body3D {
         let mesh: Mesh = MeshBuilder.CreateSphere(name, { diameter: diameter }, this.scene);
         mesh.position = position;
         mesh.material = this.materials[appearance];
@@ -148,13 +149,13 @@ class Simulation {
             light.range = lightRange;
         }
 
-        let body = new Body(mesh, mass, diameter, velocity, light, appearance);
+        let body = new Body3D(mesh, mass, diameter, velocity, light, appearance);
         this.addBodies([body]);
 
         return body;
     }
 
-    public addBodies(bodies: Body[]) {
+    public addBodies(bodies: Body3D[]) {
         for (let b of bodies) {
             b.id = this.nextId;
             this.bodies.push(b);
@@ -163,11 +164,11 @@ class Simulation {
         this.onAddBodies.trigger(bodies);
     }
 
-    public removeBody(b: Body) {
+    public removeBody(b: Body3D) {
         this.removeBodies([b]);
     }
 
-    public removeBodies(bodies: Body[]) {
+    public removeBodies(bodies: Body3D[]) {
         for (let b of bodies) {
             let idx = this.bodies.indexOf(b);
             if (idx !== -1) {
@@ -180,7 +181,7 @@ class Simulation {
         this.onRemoveBodies.trigger(bodies);
     }
 
-    public setTarget(b: Body) {
+    public setTarget(b: Body3D) {
         if (!b || this.targetBody === b) return;
         this.targetBody = b;
         this.camera.setTarget(b.mesh);
@@ -286,10 +287,14 @@ class Simulation {
         return this.gpuKernel;
     }
 
+    private setRenderMode(mode: "2D"|"3D") {
+
+    }
+
     // Event Stuff
-    public onAddBodies = new EventEmitter<Body[]>();
-    public onRemoveBodies = new EventEmitter<Body[]>();
-    public onTargetChange = new EventEmitter<Body>();
+    public onAddBodies = new EventEmitter<Body3D[]>();
+    public onRemoveBodies = new EventEmitter<Body3D[]>();
+    public onTargetChange = new EventEmitter<Body3D>();
 }
 
 export default Simulation;

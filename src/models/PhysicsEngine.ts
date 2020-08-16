@@ -1,10 +1,10 @@
-import Body from "./Body";
+import Body3D from "./Body/Body3D";
 import { Vector3 } from "babylonjs";
-import { PhysicsObject } from "./PhysicsObject";
+import { IPhysicsObject } from "./Body/IPhysicsObject";
 
 const G = 6.67408e-11;
 
-function calcNetForce(body: PhysicsObject, allBodies: PhysicsObject[]): Vector3 {
+function calcNetForce(body: IPhysicsObject, allBodies: IPhysicsObject[]): Vector3 {
     let result: Vector3 = Vector3.Zero();
     for (let otherBody of allBodies) {
         if (otherBody === body) continue;

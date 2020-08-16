@@ -1,9 +1,10 @@
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer } from "babylonjs";
-import { PhysicsObject } from "./PhysicsObject";
-import EventEmitter from "./EventEmitter";
-import { BodyAppearance } from "../components/simulation";
+import { IPhysicsObject } from "./IPhysicsObject";
+import EventEmitter from "../EventEmitter";
+import { BodyAppearance } from "../../components/simulation";
+import { IBody } from "./IBody";
 
-class Body implements PhysicsObject {
+class Body2D implements IBody {
     // Private fields
     private _mesh : Mesh;
     private _light : PointLight = null;
@@ -49,4 +50,4 @@ class Body implements PhysicsObject {
     public onChange = new EventEmitter<{}>();
 }
 
-export default Body;
+export default Body3D;
