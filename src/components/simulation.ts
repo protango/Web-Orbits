@@ -15,6 +15,8 @@ import FileWindow from './windows/fileWindow';
 import { GPU, IKernelRunShortcut } from 'gpu.js';
 import TerminalWindow from './windows/terminalWindow';
 import FastAverageColor from 'fast-average-color';
+import { IBody } from '../models/Body/IBody';
+import Body2D from '../models/Body/Body2D';
 
 export enum BodyAppearance {
     Blank = "Blank",
@@ -26,18 +28,18 @@ export enum BodyAppearance {
 type Point3DTuple = [number, number, number];
 
 class Simulation {
-    public bodies: Body3D[] = [];
+    public bodies: IBody[] = [];
     public elem : HTMLCanvasElement;
     public scene: Scene;
     public camera: ArcRotateCamera;
-    public targetBody: Body3D;
-    private nextId: number = 1;
+    public targetBody: IBody;
 
     public get bgColor(): Color4 { return this.scene.clearColor; }
     public set bgColor(c: Color4) { this.scene.clearColor = c; }
     public forceMode: "GPU" | "CPU" = null;
+    public renderMode: "2D" | "3D" = "3D";
 
-    private materials : {[key in BodyAppearance]: Material};
+    public materials : {[key in BodyAppearance]: Material};
     private gpuKernel: IKernelRunShortcut;
 
     constructor() {
@@ -138,60 +140,64 @@ class Simulation {
         window.addEventListener("resize", function(){engine.resize();});
     }
 
-    public addBody(name: string, mass: number, position: Vector3, diameter: number, appearance: BodyAppearance, velocity: Vector3 = null, lightRange: number = null): Body3D {
-        let mesh: Mesh = MeshBuilder.CreateSphere(name, { diameter: diameter }, this.scene);
-        mesh.position = position;
-        mesh.material = this.materials[appearance];
-        let light: PointLight = null;
-        if (lightRange != null && lightRange > 0)
-        {
-            light = new PointLight(name+"Light", position, this.scene);
-            light.range = lightRange;
-        }
-
-        let body = new Body3D(mesh, mass, diameter, velocity, light, appearance);
+    public addBody(name: string, mass: number, position: Vector3, diameter: number, appearance: BodyAppearance, velocity: Vector3 = null, lightRange: number = null): IBody {
+        let body: IBody;
+        if (this.renderMode === "2D") 
+            body = new Body2D(name, mass, position, diameter, appearance, this, velocity, lightRange);
+        else if (this.renderMode === "3D")
+            body = new Body3D(name, mass, position, diameter, appearance, this, velocity, lightRange);
+        
         this.addBodies([body]);
 
         return body;
     }
 
-    public addBodies(bodies: Body3D[]) {
+    public addBodies(bodies: IBody[]) {
         for (let b of bodies) {
-            b.id = this.nextId;
+            b.id = this.bodies.length ? this.bodies[this.bodies.length - 1].id + 1 : 1;
             this.bodies.push(b);
-            this.nextId++;
         }
         this.onAddBodies.trigger(bodies);
     }
 
-    public removeBody(b: Body3D) {
+    public removeBody(b: IBody) {
         this.removeBodies([b]);
     }
 
-    public removeBodies(bodies: Body3D[]) {
+    public removeBodies(bodies: IBody[]) {
         for (let b of bodies) {
             let idx = this.bodies.indexOf(b);
             if (idx !== -1) {
                 this.bodies.splice(idx, 1);
-                b.mesh.dispose();
-                if (b.light) b.light.dispose();
+                b.dispose();
             }
         }
-        this.nextId = this.bodies.length ? this.bodies[this.bodies.length - 1].id + 1 : 1;
         this.onRemoveBodies.trigger(bodies);
     }
 
-    public setTarget(b: Body3D) {
+    public setTarget(b: IBody) {
         if (!b || this.targetBody === b) return;
         this.targetBody = b;
-        this.camera.setTarget(b.mesh);
+        if (b instanceof Body3D) {
+            this.camera.setTarget(b.mesh);
+        } else {
+            this.camera.setTarget(b.position);
+        }
+
         this.camera.radius = b.diameter * 5;
         this.onTargetChange.trigger(b);
     }
 
     private pointerUpHandler(evt: PointerEvent, pickInfo: PickingInfo, type: PointerEventTypes) {
         if (pickInfo.hit) {
-            let b = this.bodies.find(x => x.mesh === pickInfo.pickedMesh);
+            let b = this.bodies.find(x => {
+                if (x instanceof Body3D) 
+                    return x.mesh === pickInfo.pickedMesh;
+                else if (x instanceof Body2D)
+                    return x.sprite === pickInfo.pickedSprite;
+                else
+                    return false;
+            });
             this.setTarget(b);
         }
     }
@@ -241,21 +247,6 @@ class Simulation {
     }
 
     private gpu: GPU = new GPU();
-    private initGPU() {
-        let gpu = new GPU();
-        function gpuVectorAdd(v1: Point3DTuple, v2: Point3DTuple): Point3DTuple { return [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]]; }
-        function gpuVectorSubtract(v1: Point3DTuple, v2: Point3DTuple): Point3DTuple { return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]]; }
-        function gpuVectorMultiply(v1: Point3DTuple, n: number): Point3DTuple { return [v1[0] * n, v1[1] * n, v1[2] * n]; }
-        function gpuVectorDivide(v1: Point3DTuple, n: number): Point3DTuple { return [v1[0] / n, v1[1] / n, v1[2] / n]; }
-        function gpuVectorMagnitude(v: Point3DTuple): number { return Math.sqrt(Math.pow(v[0], 2) + Math.pow(v[1], 2) + Math.pow(v[2], 2)); }
-        function gpuIntegrateMotion(a: Point3DTuple, initial: Point3DTuple, dt: number): Point3DTuple { return gpuVectorAdd(gpuVectorMultiply(a, dt), initial); }
-        gpu.addFunction(gpuVectorAdd, { argumentTypes: { v1: 'Array(3)', v2: 'Array(3)'}, returnType: 'Array(3)' });
-        gpu.addFunction(gpuVectorSubtract, { argumentTypes: { v1: 'Array(3)', v2: 'Array(3)'}, returnType: 'Array(3)' });
-        gpu.addFunction(gpuVectorMultiply, { argumentTypes: { v1: 'Array(3)', n: 'Float'}, returnType: 'Array(3)' });
-        gpu.addFunction(gpuVectorDivide, { argumentTypes: { v1: 'Array(3)', n: 'Float'}, returnType: 'Array(3)' });
-        gpu.addFunction(gpuVectorMagnitude, { argumentTypes: { v1: 'Array(3)' }, returnType: 'Float' });
-        gpu.addFunction(gpuIntegrateMotion, { argumentTypes: { a: 'Array(3)', initial: 'Array(3)', dt: 'Float' }, returnType: 'Array(3)' });
-    }
     private getGpuKernel() {
         if (!this.gpuKernel || this.gpuKernel.output[0] !== this.bodies.length) {
             this.gpuKernel = this.gpu.createKernel(function (posFlat: number[], masses: number[]) {
@@ -287,14 +278,25 @@ class Simulation {
         return this.gpuKernel;
     }
 
-    private setRenderMode(mode: "2D"|"3D") {
-
+    public setRenderMode(mode: "2D"|"3D") {
+        let newBodies: IBody[] = null;
+        if (this.renderMode === "2D" && mode === "3D") {
+            newBodies = this.bodies.map(x => Body3D.copyFrom(x, this));
+        } else if (this.renderMode === "3D" && mode === "2D") {
+            newBodies = this.bodies.map(x => Body2D.copyFrom(x, this));
+        }
+        if (newBodies !== null) {
+            let cp: IBody[] = Object.assign([], this.bodies);
+            this.removeBodies(cp);
+            this.addBodies(newBodies)
+        }
+        this.renderMode = mode;
     }
 
     // Event Stuff
-    public onAddBodies = new EventEmitter<Body3D[]>();
-    public onRemoveBodies = new EventEmitter<Body3D[]>();
-    public onTargetChange = new EventEmitter<Body3D>();
+    public onAddBodies = new EventEmitter<IBody[]>();
+    public onRemoveBodies = new EventEmitter<IBody[]>();
+    public onTargetChange = new EventEmitter<IBody>();
 }
 
 export default Simulation;

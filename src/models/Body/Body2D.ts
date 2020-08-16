@@ -1,53 +1,71 @@
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer } from "babylonjs";
+import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer, Sprite, SpriteManager } from "babylonjs";
 import { IPhysicsObject } from "./IPhysicsObject";
 import EventEmitter from "../EventEmitter";
-import { BodyAppearance } from "../../components/simulation";
+import Simulation, { BodyAppearance } from "../../components/simulation";
 import { IBody } from "./IBody";
+import whiteCircleSrc from 'assets/WhiteCircle.png';
 
 class Body2D implements IBody {
     // Private fields
-    private _mesh : Mesh;
-    private _light : PointLight = null;
-    private currentDiamater: number;
-    private scale: number = 1;
-    private originalDiamater: number;
+    private _sprite : Sprite;
+    private _manager : SpriteManager;
     
 
     // Public API
     public id: number;
     public mass: number;
     public velocity: Vector3 = new Vector3(0, 0, 0);
-    public get mesh() : Mesh { return this._mesh; }
-    public get light() : PointLight { return this._light; }
-    public get position() : Vector3 { return this._mesh.position; }
+    public get mesh() : Sprite { return this._sprite; }
+    public get position() : Vector3 { 
+        return this._sprite.position;
+    }
     public set position(v: Vector3) { 
-        this._mesh.position = v; 
-        if (this._light) this._light.position = v; 
+        this._sprite.position = v;
     }
     public get name() : string { return this.mesh.name };
     public set name(s: string) { this.mesh.name = s };
-    public get diameter() { return this.currentDiamater; }
+    public get diameter() { 
+        return this._sprite.width;
+    }
     public set diameter(val: number) { 
-        this.currentDiamater = val;
-        this.scale = val / this.originalDiamater;
-        this.mesh.scaling.x = this.scale;
-        this.mesh.scaling.y = this.scale;
-        this.mesh.scaling.z = this.scale;
+        this._sprite.height = val;
+        this._sprite.width = val;
     }
     public appearance: BodyAppearance;
+    public lightRange: number = 0;
+    public get sprite() { return this._sprite; }
 
-
-    constructor(mesh: Mesh, mass: number, diameter: number, velocity: Vector3 = null, light: PointLight = null, appearance: BodyAppearance = null) {
-        this._mesh = mesh;
-        this.velocity = velocity === null ? new Vector3(0, 0, 0) : velocity;
-        this._light = light;
-        this.mass = mass;
-        this.originalDiamater = this.currentDiamater = diameter;
-        this.appearance = appearance;
+    public dispose(): void {
+        this.sprite.dispose();
+        this._manager.dispose();
     }
 
-    //Events
-    public onChange = new EventEmitter<{}>();
+
+    constructor(name: string, mass: number, position: Vector3, diameter: number, appearance: BodyAppearance, sim: Simulation, velocity: Vector3 = null, lightRange: number = null) {
+        this._manager = new SpriteManager(name + "_SpriteManager", whiteCircleSrc, 1, 512, sim.scene);
+        this._manager.isPickable = true;
+        this._sprite = new Sprite(name, this._manager);
+        this._sprite.isPickable = true;
+        this.position = position;
+        this.diameter = diameter;
+        this.appearance = appearance;
+        this.mass = mass;
+        if (lightRange) this.lightRange = lightRange;
+        if (velocity) this.velocity = velocity;
+    }
+
+    public static copyFrom(body: IBody, sim: Simulation): Body2D {
+        return new this(
+            body.name,
+            body.mass,
+            body.position,
+            body.diameter,
+            body.appearance,
+            sim,
+            body.velocity,
+            body.lightRange
+        );
+    }
 }
 
-export default Body3D;
+export default Body2D;

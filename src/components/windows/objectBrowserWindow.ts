@@ -4,6 +4,7 @@ import Simulation from "../simulation";
 import NewObjectWindow from "./newObjectWindow";
 import Body3D from "../../models/Body/Body3D";
 import HTMLRepeater from "../../models/HTMLRepeater";
+import { IBody } from "../../models/Body/IBody";
 
 export default class ObjectBrowserWindow extends InfoWindow {
     private static _instance: ObjectBrowserWindow
@@ -58,7 +59,7 @@ export default class ObjectBrowserWindow extends InfoWindow {
 
         // Repeater for table rows
         let tbody = this.elem.querySelector(".objectTable tbody") as HTMLTableSectionElement;
-        let repeater = new HTMLRepeater<Body3D>((body) => {
+        let repeater = new HTMLRepeater<IBody>((body) => {
             let newRow = document.createElement("tr");
             newRow.id = "BodyRow" + body.id;
             newRow.innerHTML = `
@@ -80,7 +81,7 @@ export default class ObjectBrowserWindow extends InfoWindow {
         this.simulation.onTargetChange.addHandler(b => this.onTargetChange(b));
     }
 
-    private onTargetChange(body: Body3D) {
+    private onTargetChange(body: IBody) {
         let rows = this.elem.querySelectorAll(".objectTable tbody tr.highlight") as NodeListOf<HTMLTableRowElement>;
         rows.forEach(x => x.classList.remove("highlight"));
 
@@ -110,7 +111,7 @@ export default class ObjectBrowserWindow extends InfoWindow {
 
     private deleteSelected() {
         let checkBoxes = this.elem.querySelectorAll("input.bodyCheck") as NodeListOf<HTMLInputElement>;
-        let bodiesToRemove: Body3D[] = [];
+        let bodiesToRemove: IBody[] = [];
         for (let i = 0; i<checkBoxes.length; i++) {
             if (checkBoxes[i].checked)
                 bodiesToRemove.push(this.simulation.bodies[i]);

@@ -9,6 +9,7 @@ import SphericalVector from "../../models/SphericalVector";
 import deg2rad from "../../utilities/deg2rad";
 import HTMLRepeater from "../../models/HTMLRepeater";
 import Body3D from "../../models/Body/Body3D";
+import { IBody } from "../../models/Body/IBody";
 
 interface FormFields {
     name: HTMLInputElement,
@@ -125,7 +126,7 @@ export default class NewObjectWindow extends InfoWindow {
 
         // Repeater for ref obj select box
         let refObjSelect = this.formFields.refObj;
-        let repeater = new HTMLRepeater<Body3D>((x) => htmlToElement(`<option value="${x.id}">${x.name}</option>`), refObjSelect, []);
+        let repeater = new HTMLRepeater<IBody>((x) => htmlToElement(`<option value="${x.id}">${x.name}</option>`), refObjSelect, []);
         sim.onAddBodies.addHandler((b) => repeater.notifyObjsAdded(b));
         sim.onRemoveBodies.addHandler((b) => repeater.notifyObjsRemoved(b));
     }

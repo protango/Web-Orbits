@@ -99,4 +99,17 @@ export default class TerminalWindow extends InfoWindow {
         }
 
     }
+
+    private setRenderMode(mode: string, self: TerminalWindow) {
+        let rndMd = mode.toUpperCase();
+        if (rndMd === "2D") {
+            self.simulation.setRenderMode(rndMd);
+            self.writeLine("Set render mode to 2D");
+        } else if (rndMd === "3D") {
+            self.simulation.setRenderMode(rndMd);
+            self.writeLine("Set render mode to 3D");
+        } else {
+            self.writeLine("Invalid option \""+mode+"\". Must be either \"2D\" or \"3D\".");
+        }
+    }
 }
