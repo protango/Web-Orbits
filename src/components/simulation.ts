@@ -92,7 +92,7 @@ class Simulation {
         this.addBody("Earth", 200, new Vector3(-60, 0, 0), 10, BodyAppearance.Earth, new Vector3(0, 0.0002, 0.0002));
         this.addBody("Mercury", 100, new Vector3(50, 0, 0), 10, BodyAppearance.Mercury, new Vector3(0, 0.0003, 0));
 
-        this.target(sunBody);
+        this.setTarget(sunBody);
 
         // Register event handlers
         scene.onPointerUp = (evt, pickInfo, type) => this.pointerUpHandler(evt, pickInfo, type);
@@ -180,7 +180,7 @@ class Simulation {
         this.onRemoveBodies.trigger(bodies);
     }
 
-    public target(b: Body) {
+    public setTarget(b: Body) {
         if (!b || this.targetBody === b) return;
         this.targetBody = b;
         this.camera.setTarget(b.mesh);
@@ -191,7 +191,7 @@ class Simulation {
     private pointerUpHandler(evt: PointerEvent, pickInfo: PickingInfo, type: PointerEventTypes) {
         if (pickInfo.hit) {
             let b = this.bodies.find(x => x.mesh === pickInfo.pickedMesh);
-            this.target(b);
+            this.setTarget(b);
         }
     }
 

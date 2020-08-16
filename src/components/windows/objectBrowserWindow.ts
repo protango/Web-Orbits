@@ -72,7 +72,7 @@ export default class ObjectBrowserWindow extends InfoWindow {
             let bodyCheck = newRow.querySelector(".bodyCheck") as HTMLInputElement;
             bodyCheck.onchange = (e) => this.updateSelect(e.target as HTMLInputElement);
             bodyCheck.onclick = (e) => e.stopPropagation();
-            newRow.onclick = () => { this.simulation.target(body) };
+            newRow.onclick = () => { this.simulation.setTarget(body) };
             return newRow;
         }, tbody, sim.bodies);
         this.simulation.onAddBodies.addHandler(b => {repeater.notifyObjsAdded(b); this.updateSelect(null);});
