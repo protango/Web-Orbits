@@ -93,7 +93,7 @@ export default class TerminalWindow extends InfoWindow {
             self.writeLine("Forcing " + mdUp + " computation");
         } else if (mdUp === "AUTO") {
             self.simulation.forceMode = null;
-            self.writeLine("Comutation mode set to auto");
+            self.writeLine("Computation mode set to auto");
         } else {
             self.writeLine("Invalid mode, must be CPU, GPU or Auto");
         }
