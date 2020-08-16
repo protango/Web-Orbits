@@ -2,7 +2,7 @@ import earthTextureSrc from 'assets/earth.jpg';
 import sunTextureSrc from 'assets/sun.jpg';
 import mercuryTextureSrc from 'assets/mercury.jpg';
 import earthCloudsTexture from 'assets/earth_clouds.jpg';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer, Material, PickingInfo, PointerEventTypes, LinesMesh, Light } from "babylonjs";
+import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer, Material, PickingInfo, PointerEventTypes, LinesMesh, Light, SpriteManager } from "babylonjs";
 import * as $ from "jquery";
 import Body3D from "../models/Body/Body3D";
 import { calcNetForce, integrateMotion, accelerationFromForce, vectorMagnitude, vectorDivide } from '../models/PhysicsEngine';
@@ -17,6 +17,7 @@ import TerminalWindow from './windows/terminalWindow';
 import FastAverageColor from 'fast-average-color';
 import { IBody } from '../models/Body/IBody';
 import Body2D from '../models/Body/Body2D';
+import whiteCircleSrc from 'assets/WhiteCircle.png';
 
 export enum BodyAppearance {
     Blank = "Blank",
@@ -38,6 +39,7 @@ class Simulation {
     public set bgColor(c: Color4) { this.scene.clearColor = c; }
     public forceMode: "GPU" | "CPU" = null;
     public renderMode: "2D" | "3D" = "3D";
+    public spriteManager: SpriteManager = null;
 
     public materials : {[key in BodyAppearance]: Material};
     private gpuKernel: IKernelRunShortcut;
@@ -140,23 +142,28 @@ class Simulation {
         window.addEventListener("resize", function(){engine.resize();});
     }
 
-    public addBody(name: string, mass: number, position: Vector3, diameter: number, appearance: BodyAppearance, velocity: Vector3 = null, lightRange: number = null): IBody {
-        let body: IBody;
+    public createBody(name: string, mass: number, position: Vector3, diameter: number, appearance: BodyAppearance, velocity: Vector3 = null, lightRange: number = null) : IBody {
         if (this.renderMode === "2D") 
-            body = new Body2D(name, mass, position, diameter, appearance, this, velocity, lightRange);
+            return new Body2D(name, mass, position, diameter, appearance, this, velocity, lightRange);
         else if (this.renderMode === "3D")
-            body = new Body3D(name, mass, position, diameter, appearance, this, velocity, lightRange);
-        
+            return new Body3D(name, mass, position, diameter, appearance, this, velocity, lightRange);
+        return null;
+    }
+
+    public addBody(name: string, mass: number, position: Vector3, diameter: number, appearance: BodyAppearance, velocity: Vector3 = null, lightRange: number = null): IBody {
+        let body = this.createBody(name, mass, position, diameter, appearance, velocity, lightRange);
         this.addBodies([body]);
 
         return body;
     }
 
     public addBodies(bodies: IBody[]) {
+        let i = this.bodies.length ? this.bodies[this.bodies.length - 1].id + 1 : 1;
         for (let b of bodies) {
-            b.id = this.bodies.length ? this.bodies[this.bodies.length - 1].id + 1 : 1;
-            this.bodies.push(b);
+            b.id = i;
+            i++;
         }
+        this.bodies.push(...bodies);
         this.onAddBodies.trigger(bodies);
     }
 
@@ -173,6 +180,14 @@ class Simulation {
             }
         }
         this.onRemoveBodies.trigger(bodies);
+    }
+
+    public clearBodies() {
+        for (let b of this.bodies) {
+            b.dispose();
+        }
+        this.onRemoveBodies.trigger(this.bodies);
+        this.bodies = [];
     }
 
     public setTarget(b: IBody) {
@@ -281,13 +296,18 @@ class Simulation {
     public setRenderMode(mode: "2D"|"3D") {
         let newBodies: IBody[] = null;
         if (this.renderMode === "2D" && mode === "3D") {
+            this.spriteManager.dispose();
+            this.spriteManager = null;
             newBodies = this.bodies.map(x => Body3D.copyFrom(x, this));
         } else if (this.renderMode === "3D" && mode === "2D") {
+            if (!this.spriteManager) {
+                this.spriteManager = new SpriteManager("bodySpriteManager", whiteCircleSrc, 20000, 512, this.scene);
+                this.spriteManager.isPickable = true;
+            }
             newBodies = this.bodies.map(x => Body2D.copyFrom(x, this));
         }
         if (newBodies !== null) {
-            let cp: IBody[] = Object.assign([], this.bodies);
-            this.removeBodies(cp);
+            this.clearBodies();
             this.addBodies(newBodies)
         }
         this.renderMode = mode;

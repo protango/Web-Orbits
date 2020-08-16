@@ -61,9 +61,9 @@ export default class FileWindow extends InfoWindow {
             globalLight.checked = ssim.globalLightEnabled;
             globalLight.onchange(null);
 
-            this.simulation.removeBodies([...this.simulation.bodies]);
-            for (let b of ssim.bodies) {
-                this.simulation.addBody(
+            this.simulation.clearBodies();
+            let bodies = ssim.bodies.map(b => 
+                this.simulation.createBody(
                     b.name, 
                     b.mass, 
                     new Vector3(b.position.x, b.position.y, b.position.z), 
@@ -71,8 +71,9 @@ export default class FileWindow extends InfoWindow {
                     b.appearance, 
                     new Vector3(b.velocity.x, b.velocity.y, b.velocity.z), 
                     b.lightRange
-                );
-            }
+                )
+            );
+            this.simulation.addBodies(bodies);
         } catch {
             new ErrorWindow("Corrupt save file", this);
         }

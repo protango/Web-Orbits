@@ -8,7 +8,6 @@ import whiteCircleSrc from 'assets/WhiteCircle.png';
 class Body2D implements IBody {
     // Private fields
     private _sprite : Sprite;
-    private _manager : SpriteManager;
     
 
     // Public API
@@ -37,14 +36,12 @@ class Body2D implements IBody {
 
     public dispose(): void {
         this.sprite.dispose();
-        this._manager.dispose();
     }
 
+    private static manager: SpriteManager = null;
 
     constructor(name: string, mass: number, position: Vector3, diameter: number, appearance: BodyAppearance, sim: Simulation, velocity: Vector3 = null, lightRange: number = null) {
-        this._manager = new SpriteManager(name + "_SpriteManager", whiteCircleSrc, 1, 512, sim.scene);
-        this._manager.isPickable = true;
-        this._sprite = new Sprite(name, this._manager);
+        this._sprite = new Sprite(name, sim.spriteManager);
         this._sprite.isPickable = true;
         this.position = position;
         this.diameter = diameter;
