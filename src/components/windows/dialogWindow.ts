@@ -1,13 +1,13 @@
 import htmlToElement from "../../utilities/htmlToElement";
 import InfoWindow from "./infoWindow";
 
-export default class ErrorWindow extends InfoWindow {
+export default class DialogWindow extends InfoWindow {
     private parent: InfoWindow;
 
     constructor(message: string, parent: InfoWindow) {
 
         super("Error", `
-            <div class="error">
+            <div class="dialog">
                 <span>${message}</span>
                 <div style="margin-top: 15px; text-align: center">
                     <button class="ok">OK</button>
