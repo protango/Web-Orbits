@@ -4,7 +4,7 @@ import SerializableSimulation from "../../models/Serialization/SerializableSimul
 import { saveAs } from 'file-saver';
 import htmlToElement from "../../utilities/htmlToElement";
 import openFileDialog from "../../utilities/openFileDialog";
-import ErrorWindow from "./errorWindow";
+import DialogWindow from "./dialogWindow";
 import { Vector3 } from "babylonjs";
 
 export default class FileWindow extends InfoWindow {
@@ -42,7 +42,7 @@ export default class FileWindow extends InfoWindow {
         if (files) {
             let file = files.item(0);
             if (file.type !== "application/json") {
-                new ErrorWindow("File just be a JSON file", this);
+                new DialogWindow("File just be a JSON file", this);
                 return;
             }
 
@@ -75,7 +75,7 @@ export default class FileWindow extends InfoWindow {
             );
             this.simulation.addBodies(bodies);
         } catch {
-            new ErrorWindow("Corrupt save file", this);
+            new DialogWindow("Corrupt save file", this);
         }
     }
 }

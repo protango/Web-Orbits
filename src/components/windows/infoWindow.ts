@@ -25,7 +25,7 @@ export default abstract class InfoWindow {
     }
 
     private topBarElem :HTMLDivElement;
-    public errorWin: InfoWindow = null;
+    public childWin: InfoWindow = null;
 
     constructor(title: string, htmlContent: string) {
         this.title = title;
@@ -154,8 +154,8 @@ export default abstract class InfoWindow {
     }
 
     public focus() {
-        if (this.errorWin) {
-            this.errorWin.focus();
+        if (this.childWin) {
+            this.childWin.focus();
             return;
         }
 

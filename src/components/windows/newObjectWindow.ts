@@ -3,7 +3,7 @@ import InfoWindow from "./infoWindow";
 import Simulation, { BodyAppearance } from "../simulation";
 import clearChildren from "../../utilities/clearChildren";
 import { keys } from 'ts-transformer-keys';
-import ErrorWindow from "./errorWindow";
+import DialogWindow from "./dialogWindow";
 import { Vector3 } from "babylonjs";
 import SphericalVector from "../../models/SphericalVector";
 import deg2rad from "../../utilities/deg2rad";
@@ -133,9 +133,9 @@ export default class NewObjectWindow extends InfoWindow {
 
     private create() {
         // Return if error window is present
-        if (this.errorWin) return;
+        if (this.childWin) return;
         // Validate input
-        if (!this.formFields.name.value) new ErrorWindow("Object must have a name", this);
+        if (!this.formFields.name.value) new DialogWindow("Object must have a name", this);
 
         // Add body
         this.simulation.addBody(

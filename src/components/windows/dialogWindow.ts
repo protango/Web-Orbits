@@ -4,9 +4,9 @@ import InfoWindow from "./infoWindow";
 export default class DialogWindow extends InfoWindow {
     private parent: InfoWindow;
 
-    constructor(message: string, parent: InfoWindow) {
+    constructor(message: string, title: string, parent: InfoWindow) {
 
-        super("Error", `
+        super(title, `
             <div class="dialog">
                 <span>${message}</span>
                 <div style="margin-top: 15px; text-align: center">
@@ -15,8 +15,8 @@ export default class DialogWindow extends InfoWindow {
             </div>`);
         this.parent = parent;
 
-        if (this.parent.errorWin) this.parent.errorWin.close();
-        this.parent.errorWin = this;
+        if (this.parent.childWin) this.parent.childWin.close();
+        this.parent.childWin = this;
 
         this.otherWindows = parent.otherWindows;
         this.otherWindows.push(this);
@@ -27,7 +27,7 @@ export default class DialogWindow extends InfoWindow {
         (this.elem.querySelector(".ok") as HTMLButtonElement).onclick = () => this.close();
         this.onClose = () => {
             this.destroy();
-            this.parent.errorWin = null;
+            this.parent.childWin = null;
         }
     }
 }
