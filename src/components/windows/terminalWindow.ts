@@ -4,6 +4,7 @@ import SerializableBody from "../../models/Serialization/SerializableBody";
 import SerializableSimulation from "../../models/Serialization/SerializableSimulation";
 import FileWindow from "./fileWindow";
 import { GPU } from 'gpu.js';
+import randomNormal from 'random-normal';
 
 export default class TerminalWindow extends InfoWindow {
     private static _instance: TerminalWindow
@@ -63,12 +64,15 @@ export default class TerminalWindow extends InfoWindow {
         let ub = -lb;
         let idx = 0;
         let bodies: SerializableBody[] = [];
+        let density = 1;
         for (let x = lb; x<=ub; x++)
         for (let y = lb; y<=ub; y++)
         for (let z = lb; z<=ub; z++) {
+            //let mass = Math.abs(randomNormal({mean: 100, dev: 100}));
             bodies.push({
                 position: {x: x*5, y: y*5, z: z*5},
                 velocity: {x: Math.random() / 1e5, y: Math.random() / 1e5, z: Math.random() / 1e5},
+                //diameter: Math.sqrt(4 * mass * density / Math.PI),
                 diameter: 1,
                 lightRange: 0,
                 name: "Object " + (++idx),

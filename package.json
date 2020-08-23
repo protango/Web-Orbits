@@ -21,6 +21,7 @@
   "homepage": "https://github.com/protango/Web-Orbits#readme",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.13.0",
+    "@types/random-normal": "^1.0.0",
     "babylonjs": "^4.1.0",
     "compression": "^1.7.4",
     "express": "^4.17.1",
@@ -28,6 +29,7 @@
     "file-saver": "^2.0.2",
     "gpu.js": "^2.9.4",
     "jquery": "^3.4.1",
+    "random-normal": "^1.0.0",
     "ts-transformer-keys": "^0.4.2"
   },
   "devDependencies": {
