@@ -42,7 +42,7 @@ export default class FileWindow extends InfoWindow {
         if (files) {
             let file = files.item(0);
             if (file.type !== "application/json") {
-                new DialogWindow("File just be a JSON file", this);
+                new DialogWindow("File just be a JSON file", "Error", this);
                 return;
             }
 
@@ -75,7 +75,7 @@ export default class FileWindow extends InfoWindow {
             );
             this.simulation.addBodies(bodies);
         } catch {
-            new DialogWindow("Corrupt save file", this);
+            new DialogWindow("Corrupt save file", "Error", this);
         }
     }
 }

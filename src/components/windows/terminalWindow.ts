@@ -5,6 +5,7 @@ import SerializableSimulation from "../../models/Serialization/SerializableSimul
 import FileWindow from "./fileWindow";
 import { GPU } from 'gpu.js';
 import randomNormal from 'random-normal';
+import DialogWindow from "./dialogWindow";
 
 export default class TerminalWindow extends InfoWindow {
     private static _instance: TerminalWindow
@@ -102,5 +103,9 @@ export default class TerminalWindow extends InfoWindow {
             self.writeLine("Invalid mode, must be CPU, GPU or Auto");
         }
 
+    }
+
+    private testDialog() {
+        let errorWin = new DialogWindow("TEST MESSAGE", "DIALOG WINDOW TITLE", this);
     }
 }

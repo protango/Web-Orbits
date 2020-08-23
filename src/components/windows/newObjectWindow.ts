@@ -135,7 +135,7 @@ export default class NewObjectWindow extends InfoWindow {
         // Return if error window is present
         if (this.childWin) return;
         // Validate input
-        if (!this.formFields.name.value) new DialogWindow("Object must have a name", this);
+        if (!this.formFields.name.value) new DialogWindow("Object must have a name", "Error", this);
 
         // Add body
         this.simulation.addBody(
