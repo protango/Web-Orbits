@@ -20,9 +20,10 @@ export default abstract class InfoWindow {
     public get width() : number {
         return Number(this.elem.style.width || 0);
     }
-    public set position(val: number) {
-        this.elem.style.zIndex = val.toString();
-    }
+    public get top() { return this.elem.offsetTop; }
+    public set top(val: number) { this.elem.style.top = val + "px"; }
+    public get left() { return this.elem.offsetLeft; }
+    public set left(val: number) { this.elem.style.left = val + "px";  }
 
     private topBarElem :HTMLDivElement;
     public childWin: InfoWindow = null;

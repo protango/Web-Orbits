@@ -14,6 +14,8 @@ export default class DialogWindow extends InfoWindow {
                 </div>
             </div>`);
         this.parent = parent;
+        this.top = this.parent.top;
+        this.left = this.parent.left;
 
         if (this.parent.childWin) this.parent.childWin.close();
         this.parent.childWin = this;

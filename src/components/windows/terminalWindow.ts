@@ -105,7 +105,7 @@ export default class TerminalWindow extends InfoWindow {
 
     }
 
-    private testDialog() {
-        let errorWin = new DialogWindow("TEST MESSAGE", "DIALOG WINDOW TITLE", this);
+    private testDialog(self: TerminalWindow) {
+        let errorWin = new DialogWindow("TEST MESSAGE", "DIALOG WINDOW TITLE", self);
     }
 }
