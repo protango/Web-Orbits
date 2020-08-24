@@ -6,6 +6,8 @@ import FileWindow from "./fileWindow";
 import { GPU } from 'gpu.js';
 import randomNormal from 'random-normal';
 import DialogWindow from "./dialogWindow";
+import { Octant, GPUPhysicsEngine } from "../../models/GPUPhysicsEngine";
+import { Vector3, Color3, Mesh, LinesMesh } from "babylonjs";
 
 export default class TerminalWindow extends InfoWindow {
     private static _instance: TerminalWindow
@@ -107,5 +109,20 @@ export default class TerminalWindow extends InfoWindow {
 
     private testDialog(self: TerminalWindow) {
         let errorWin = new DialogWindow("TEST MESSAGE", "DIALOG WINDOW TITLE", self);
+    }
+
+    private testOctants(self: TerminalWindow) {
+        let start = new Octant([100, 100, 100], [-100, -100, -100]);
+
+        for (let b of self.simulation.bodies) {
+            start.assignBody(b);
+        }
+
+        debugger;
+    }
+
+    private processSimulationStep(self: TerminalWindow) {
+        let engine = new GPUPhysicsEngine();
+        engine.processSimulationStep(self.simulation.bodies);
     }
 }

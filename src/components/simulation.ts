@@ -18,6 +18,7 @@ import FastAverageColor from 'fast-average-color';
 import { IBody } from '../models/Body/IBody';
 import Body2D from '../models/Body/Body2D';
 import whiteCircleSrc from 'assets/WhiteCircle.png';
+import { GPUPhysicsEngine } from '../models/GPUPhysicsEngine';
 
 export enum BodyAppearance {
     Blank = "Blank",
@@ -275,35 +276,9 @@ class Simulation {
     }
 
     private gpu: GPU = new GPU();
+    private gpuEngine: GPUPhysicsEngine = new GPUPhysicsEngine();
     private getGpuKernel() {
-        if (!this.gpuKernel || this.gpuKernel.output[0] !== this.bodies.length) {
-            this.gpuKernel = this.gpu.createKernel(function (posFlat: number[], masses: number[]) {
-                let netForce = [0.0, 0.0, 0.0] as Point3DTuple;
-                for (let i = 0; i < this.output.x; i++) {
-                    if (i !== this.thread.x) {
-                        let bp = [posFlat[this.thread.x * 3 + 0], posFlat[this.thread.x * 3 + 1], posFlat[this.thread.x * 3 + 2]];
-                        let obp = [posFlat[i * 3 + 0], posFlat[i * 3 + 1], posFlat[i * 3 + 2]];
-                        
-                        let p2pVect = [obp[0] - bp[0], obp[1] - bp[1], obp[2] - bp[2]] as [number, number, number];
-                        let distance = Math.sqrt(Math.pow(p2pVect[0], 2) + Math.pow(p2pVect[1], 2) + Math.pow(p2pVect[2], 2));
-                        if (distance >= 0.1) { // ignore forces between collided bodies 
-                            let m = (6.67408e-11 * masses[this.thread.x] * masses[i]) / Math.pow(distance, 3);
-                            netForce[0] += p2pVect[0] * m;
-                            netForce[1] += p2pVect[1] * m;
-                            netForce[2] += p2pVect[2] * m;
-                        }
-                    }
-                }
-    
-                return netForce;
-            }, {
-                output: [this.bodies.length],
-                tactic: "precision",
-                precision: "single"
-            });
-        }
-
-        return this.gpuKernel;
+        return this.gpuEngine.getKernel(this.bodies.length);
     }
 
     private cullSpriteManagers() {
