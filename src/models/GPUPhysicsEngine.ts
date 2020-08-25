@@ -51,17 +51,46 @@ export class GPUPhysicsEngine {
                 ar[start + i] = newVals[i];
             }
         }
-        // Pre-allocate memory for speed, assume number of nodes will be 4x higher than n
-        let nodeBodyIds: Int32Array = new Int32Array(bodyMasses.length * 4);
-        let nodeCoMs: Float32Array = new Float32Array(bodyMasses.length * 4 * 3);
-        let nodeMasses: Float32Array = new Float32Array(bodyMasses.length * 4 * 3);
-        let nodeChildren: Int32Array = new Int32Array(bodyMasses.length * 4 * 8);
-        let nodeUpperLimits: Float32Array = new Float32Array(bodyMasses.length * 4 * 3);
-        let nodeLowerLimits: Float32Array = new Float32Array(bodyMasses.length * 4 * 3);
-        let nodeCenters: Tuple3[] = new Array(bodyMasses.length * 4);
+        // Pre-allocate memory for speed, assume number of nodes will be 5x higher than n
+        const allocationMultiplier = 6;
+        let maxNodes = bodyMasses.length * allocationMultiplier;
+        let nodeBodyIds: Int32Array = new Int32Array(maxNodes);
+        let nodeCoMs: Float32Array = new Float32Array(maxNodes * 3);
+        let nodeMasses: Float32Array = new Float32Array(maxNodes);
+        let nodeChildren: Int32Array = new Int32Array(maxNodes * 8);
+        let nodeUpperLimits: Float32Array = new Float32Array(maxNodes * 3);
+        let nodeLowerLimits: Float32Array = new Float32Array(maxNodes * 3);
+        let nodeCenters: Float32Array = new Float32Array(maxNodes * 3);
         let nodeCount = 0;
 
+        function expand() {
+            maxNodes += bodyMasses.length;
+            let temp: Int32Array | Float32Array;
+            temp = new Int32Array(maxNodes);
+            temp.set(nodeBodyIds);
+            nodeBodyIds = temp;
+            temp = new Float32Array(maxNodes * 3);
+            temp.set(nodeCoMs);
+            nodeCoMs = temp;
+            temp = new Float32Array(maxNodes);
+            temp.set(nodeMasses);
+            nodeMasses = temp;
+            temp = new Int32Array(maxNodes * 8);
+            temp.set(nodeChildren);
+            nodeChildren = temp;
+            temp = new Float32Array(maxNodes * 3);
+            temp.set(nodeUpperLimits);
+            nodeUpperLimits = temp;
+            temp = new Float32Array(maxNodes * 3);
+            temp.set(nodeLowerLimits);
+            nodeLowerLimits = temp;
+            temp = new Float32Array(maxNodes * 3);
+            temp.set(nodeCenters);
+            nodeCenters = temp;
+        }
+
         function createNode(upper: Tuple3, lower: Tuple3): number {
+            if (nodeCount >= maxNodes) expand();
             insert2D(nodeUpperLimits, nodeCount, 3, upper);
             insert2D(nodeLowerLimits, nodeCount, 3, lower);
             nodeBodyIds[nodeCount] = -1;
@@ -82,8 +111,8 @@ export class GPUPhysicsEngine {
             let upperLimit = extract2D(nodeUpperLimits, node, 3) as Tuple3;
             let lowerLimit = extract2D(nodeLowerLimits, node, 3) as Tuple3;
             let center = [(upperLimit[0] + lowerLimit[0]) / 2, (upperLimit[1] + lowerLimit[1]) / 2, (upperLimit[2] + lowerLimit[2]) / 2] as Tuple3;
-            nodeCenters[node] = center;
-            insert2D(nodeChildren, node, 8, [
+            insert2D(nodeCenters, node, 3, center);
+            let childrenIds = [
                 // Left-Bottom-Front
                 createNode(center, lowerLimit),
                 // Left-Bottom-Back
@@ -101,7 +130,8 @@ export class GPUPhysicsEngine {
                 createNode([upperLimit[0], upperLimit[1], center[2]], [center[0], center[1], lowerLimit[2]]),
                 // Right-Top-Back
                 createNode(upperLimit, center)
-            ]);
+            ];
+            insert2D(nodeChildren, node, 8, childrenIds);
             if (nodeBodyIds[node] !== -1) {
                 // There was a body assigned to this node, move it to a subdivision
                 let childIdx = findChildNodeForBody(node,  nodeBodyIds[node]);
@@ -110,19 +140,13 @@ export class GPUPhysicsEngine {
             }
         }
         function findChildNodeForBody(node: number, b: number): number {
-            let center = nodeCenters[node];
             let childIdx = node * 8;
-            if (bodyPositions[b * 3 + 0] >= center[0]) childIdx += 4; // RIGHT
-            if (bodyPositions[b * 3 + 1] >= center[1]) childIdx += 2; // TOP
-            if (bodyPositions[b * 3 + 2] >= center[2]) childIdx += 1; // BACK
+            if (bodyPositions[b * 3 + 0] >= nodeCenters[node * 3 + 0]) childIdx += 4; // RIGHT
+            if (bodyPositions[b * 3 + 1] >= nodeCenters[node * 3 + 1]) childIdx += 2; // TOP
+            if (bodyPositions[b * 3 + 2] >= nodeCenters[node * 3 + 2]) childIdx += 1; // BACK
             return nodeChildren[childIdx];
         }
         function assignBody(node: number, b: number): void {
-            // TESTING ONLY, CAN BE REMOVED LATER
-            //if (!bodyInRange(node, b)) {
-            //    throw "Body not in range!";
-            //}
-
             // Update octant weight statistics 
             let oldMass = nodeMasses[node];
             nodeMasses[node] += bodyMasses[b];
@@ -139,27 +163,14 @@ export class GPUPhysicsEngine {
                 assignBody(childIdx, b);
             }
         }
-        let t0 = performance.now();
-        for (let x = 0; x < 10; x++) {
 
-            nodeBodyIds = new Int32Array(bodyMasses.length * 4);
-            nodeCoMs = new Float32Array(bodyMasses.length * 4 * 3);
-            nodeMasses = new Float32Array(bodyMasses.length * 4 * 3);
-            nodeChildren= new Int32Array(bodyMasses.length * 4 * 8);
-            nodeUpperLimits= new Float32Array(bodyMasses.length * 4 * 3);
-            nodeLowerLimits= new Float32Array(bodyMasses.length * 4 * 3);
-            nodeCenters= new Array(bodyMasses.length * 4);
-            nodeCount = 0;
-
-            let root = createNode(spaceUpperLimit, spaceLowerLimit);
-            for (let i = 0; i < bodyMasses.length; i++) {
-                assignBody(root, i);
-            }    
+        // Actually build tree
+        let root = createNode(spaceUpperLimit, spaceLowerLimit);
+        for (let i = 0; i < bodyMasses.length; i++) {
+            assignBody(root, i);
         }
 
-        let t1 = performance.now();
-        let time = t1 - t0;
-        console.log(time / 10);
+        console.log(nodeCount);
     }
 
     public processSimulationStep(bodies: IBody[]) {
