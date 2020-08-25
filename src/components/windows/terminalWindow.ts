@@ -8,6 +8,8 @@ import randomNormal from 'random-normal';
 import DialogWindow from "./dialogWindow";
 import { Octant, GPUPhysicsEngine } from "../../models/GPUPhysicsEngine";
 import { Vector3, Color3, Mesh, LinesMesh } from "babylonjs";
+import SimulationPropertiesWindow from "./simulationPropertiesWindow";
+import TimeControlWindow from "./timeControlWindow";
 
 export default class TerminalWindow extends InfoWindow {
     private static _instance: TerminalWindow
@@ -123,6 +125,24 @@ export default class TerminalWindow extends InfoWindow {
 
     private processSimulationStep(self: TerminalWindow) {
         let engine = new GPUPhysicsEngine();
-        engine.processSimulationStep(self.simulation.bodies);
+        engine.preProcess(
+            self.simulation.bodies.map(x => [x.position.x, x.position.y, x.position.z]).flat(),
+            self.simulation.bodies.map(x => x.mass)
+        );
+        //engine.processSimulationStep(self.simulation.bodies);
+    }
+
+    private a(self: TerminalWindow) {
+        let rmSelect = document.querySelector(".simpPropWindow #renderModeSelect") as HTMLSelectElement;
+        rmSelect.selectedIndex = 1;
+        rmSelect.onchange(null);
+
+        if (!TimeControlWindow.instance.isPaused) TimeControlWindow.instance.togglePause();
+
+        self.generate("20", self);
+
+        self.processSimulationStep(self);
+
+        self.writeLine("Test setup complete");
     }
 }
