@@ -19,6 +19,7 @@ import { IBody } from '../models/Body/IBody';
 import Body2D from '../models/Body/Body2D';
 import whiteCircleSrc from 'assets/WhiteCircle.png';
 import { GPUPhysicsEngine } from '../models/GPUPhysicsEngine';
+import { GPUPhysicsEngine2 } from '../models/GPUPhysicsEngine2';
 
 export enum BodyAppearance {
     Blank = "Blank",
@@ -107,13 +108,12 @@ class Simulation {
         let fpsLabel = document.getElementById("fpsCounter");
         let c = 0;
         let timeControlWindow = TimeControlWindow.instance;
+        let gpu2 = new GPUPhysicsEngine2(this);
         engine.runRenderLoop(() => {
             if (timeControlWindow.speedValue !== 0 && this.bodies.length) {
                 let netForces: Vector3[];
                 if ((this.bodies.length > 200 && this.forceMode !== "CPU") || this.forceMode === "GPU") {
-                    let gpuOuput = this.getGpuKernel()(
-                        this.bodies.map(x => [x.position.x, x.position.y, x.position.z]).flat(),
-                        this.bodies.map(x => x.mass)) as Point3DTuple[];
+                    let gpuOuput = gpu2.processSimulationStep();
                     netForces = gpuOuput.map(x => new Vector3(x[0], x[1], x[2]));
                 } else {
                     netForces = this.bodies.map(x => calcNetForce(x, this.bodies));
