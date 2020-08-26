@@ -215,7 +215,7 @@ export class GPUPhysicsEngine2 {
             i++;
             if (this.nodeBodyIds[node] !== -1) {
                 return i - 1;
-            } else {
+            } else if (this.nodeMasses[node] > 0) {
                 let lastChildSearchPos = -1;
                 for (let i = 0; i< 8; i++) {
                     if (lastChildSearchPos !== -1) {
@@ -228,15 +228,17 @@ export class GPUPhysicsEngine2 {
                 return i - 1;
             }
         }
+        walk(0);
         let t1 = performance.now();
         //console.log("walk time: " + (t1 - t0));
 
         // Build GPU kernel if needed
         if (!this._kernel || this._kernel.output[0] !== this.N) {
-            this._kernel = this.gpu.createKernel(function(nodeBodyIds: number[], nodeCoMs: number[], nodeMasses: number[], searchOrder: number[], siblingShortcuts: number[], nodeWidths: number[], nodeCount: number, bodyPositions: number[], bodyMasses: number[]) {
+            let kernelFunc = function(nodeBodyIds: number[], nodeCoMs: number[], nodeMasses: number[], searchOrder: number[], siblingShortcuts: number[], nodeWidths: number[], nodeCount: number, bodyPositions: number[], bodyMasses: number[]) {
                 let netForce = [0.0, 0.0, 0.0] as Tuple3;
                 let bPos = extractV3(bodyPositions, this.thread.x);
-                for (let i = 0; i<nodeCount; i++) {
+                let i = 0;
+                while (i < nodeCount) {
                     let node = searchOrder[i];
 
                     if (nodeMasses[node] !== 0) { // Ignore empty nodes
@@ -264,50 +266,34 @@ export class GPUPhysicsEngine2 {
                                 netForce[2] += p2pVect[2] * m;
                                 
                                 // Use shortcut to get to next sibling
-                                i = floatToInt(siblingShortcuts[i]) - 1;
+                                let nextSibling = siblingShortcuts[i];
+                                if (nextSibling !== -1) {
+                                    i = floatToInt(nextSibling) - 1;
+                                }
                             }
                         }
                     }
+                    i++;
                 }
-                /*function walk(node: number) {
-                    if (nodeMasses[node] === 0) 
-                        return; // Ignore empty nodes
-                    if (nodeBodyIds[node] !== -1) {
-                        // External Node (that is not the current body)
-                        if (nodeBodyIds[node] !== this.thread.x) {
-                            let nPos = extractV3(nodeCoMs as any, node);
-                            let p2pVect = vectorSubtract(nPos, bPos);
-                            let distance = vectorMagnitude(p2pVect);
-                            let m = (6.67408e-11 * nodeMasses[node] * bodyMasses[this.thread.x]) / Math.pow(distance, 3);
-                            netForce[0] += p2pVect[0] * m;
-                            netForce[1] += p2pVect[1] * m;
-                            netForce[2] += p2pVect[2] * m;
-                        }
-                    } else {
-                        let nPos = extractV3(nodeCoMs as any, node);
-                        let p2pVect = vectorSubtract(nPos, bPos);
-                        let distance = vectorMagnitude(p2pVect);
-
-                        let sd = nodeWidths[node] / distance;
-                        if (sd < 0.5) { // this.constants.theta
-                            let m = (6.67408e-11 * nodeMasses[node] * bodyMasses[this.thread.x]) / Math.pow(distance, 3);
-                            netForce[0] += p2pVect[0] * m;
-                            netForce[1] += p2pVect[1] * m;
-                            netForce[2] += p2pVect[2] * m;
-                        } else if (nodeChildren[node * 8 + 7] !== 0) {
-                            for (let i = 0; i < 8; i++) {
-                                walk(nodeChildren[node * 8 + i]);
-                            }
-                        }
-                    }
-                }
-                walk(0);*/
                 return netForce;
-            }, {
+            };
+            /*
+            this._kernel = function(nodeBodyIds: number[], nodeCoMs: number[], nodeMasses: number[], searchOrder: number[], siblingShortcuts: number[], nodeWidths: number[], nodeCount: number, bodyPositions: number[], bodyMasses: number[]) {
+                let results = [];
+                for (let i = 0; i<bodyMasses.length; i++) {
+                    results.push(
+                        kernelFunc.bind({thread: {x: i}, constants: {theta: 0.25}})(nodeBodyIds, nodeCoMs, nodeMasses, searchOrder, siblingShortcuts, nodeWidths, nodeCount, bodyPositions, bodyMasses)
+                    )
+                }
+                return results;
+            } as any;
+            this._kernel.output = [this.N];*/
+            
+            this._kernel = this.gpu.createKernel(kernelFunc, {
                 output: [this.N],
                 tactic: "precision",
                 precision: "single",
-                constants: {theta: 0},
+                constants: {theta: 0.25},
                 dynamicArguments: true
             });
         }
