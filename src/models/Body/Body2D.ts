@@ -16,6 +16,7 @@ class Body2D implements IBody {
     public id: number;
     public mass: number;
     public velocity: Vector3 = new Vector3(0, 0, 0);
+    public acceleration: Vector3 = Vector3.Zero();
     public get mesh() : Sprite { return this._sprite; }
     public get position() : Vector3 { 
         return this._sprite.position;

@@ -19,6 +19,7 @@ import { IBody } from '../models/Body/IBody';
 import Body2D from '../models/Body/Body2D';
 import whiteCircleSrc from 'assets/WhiteCircle.png';
 import EditObjectWindow from './windows/editObjectWindow';
+import ObjectInfoWindow from './windows/objectInfoWindow';
 
 export enum BodyAppearance {
     Blank = "Blank",
@@ -93,6 +94,7 @@ class Simulation {
         FileWindow.instance.attachSimulation(this);
         TerminalWindow.instance.attachSimulation(this);
         EditObjectWindow.instance.attachSimulation(this);
+        ObjectInfoWindow.instance.attachSimulation(this);
 
         // register bodies
         let sunBody = this.addBody("Sun", 100000, Vector3.Zero(), 30, BodyAppearance.Sun, Vector3.Zero(), 1000);
@@ -122,7 +124,8 @@ class Simulation {
 
                 for (let i = 0; i<this.bodies.length; i++) {
                     let b = this.bodies[i];
-                    b.velocity = integrateMotion(vectorDivide(netForces[i], b.mass), b.velocity, timeControlWindow.speedValue);
+                    b.acceleration = vectorDivide(netForces[i], b.mass);
+                    b.velocity = integrateMotion(b.acceleration, b.velocity, timeControlWindow.speedValue);
                     b.position = integrateMotion(b.velocity, b.position, timeControlWindow.speedValue);
                 }
 
@@ -183,6 +186,7 @@ class Simulation {
             if (idx !== -1) {
                 this.bodies.splice(idx, 1);
                 b.dispose();
+                if (this.targetBody === b) this.setTarget(null);
             }
         }
         this.onRemoveBodies.trigger(bodies);
@@ -193,19 +197,24 @@ class Simulation {
             b.dispose();
         }
         this.onRemoveBodies.trigger(this.bodies);
+        if (this.targetBody) this.setTarget(null);
         this.bodies = [];
     }
 
     public setTarget(b: IBody) {
-        if (!b || this.targetBody === b) return;
+        if (this.targetBody === b) return;
+
         this.targetBody = b;
         if (b instanceof Body3D) {
             this.camera.setTarget(b.mesh);
-        } else {
+            this.camera.radius = b.diameter * 5;
+        } else if (b) {
             this.camera.setTarget(b.position);
+            this.camera.radius = b.diameter * 5;
+        } else {
+            this.camera.setTarget(Vector3.Zero());
         }
 
-        this.camera.radius = b.diameter * 5;
         this.onTargetChange.trigger(b);
     }
 

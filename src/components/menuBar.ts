@@ -36,7 +36,7 @@ export default class MenuBar {
         this.AddItem(new MenuBarItem("File", "fas fa-save", FileWindow.instance));
         this.AddItem(new MenuBarItem("Time Controls", "fas fa-forward", TimeControlWindow.instance));
         this.AddItem(new MenuBarItem("Object Browser", "fas fa-search", ObjectBrowserWindow.instance));
-        this.AddItem(new MenuBarItem("Object Info", "fas fa-info-circle", ObjectInfoWindow.instance));
+        this.AddItem(new MenuBarItem("Real Time Statistics", "fas fa-chart-line", ObjectInfoWindow.instance));
         this.AddItem(new MenuBarItem("New Object", "fas fa-plus", NewObjectWindow.instance));
         this.AddItem(new MenuBarItem("Simulation Properties", "fas fa-sliders-h", SimulationPropertiesWindow.instance));
         this.AddItem(new MenuBarItem("Debug Terminal", "fas fa-terminal", TerminalWindow.instance));

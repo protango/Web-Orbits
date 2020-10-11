@@ -19,6 +19,7 @@ class Body3D implements IBody {
     public readonly id: number;
     public mass: number;
     public velocity: Vector3 = new Vector3(0, 0, 0);
+    public acceleration: Vector3 = Vector3.Zero();
     public get mesh() : Mesh { return this._mesh; }
     public get light() : PointLight { return this._light; }
     public get lightRange(): number { return this._light ? this._light.range : 0; }

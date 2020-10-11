@@ -3,6 +3,7 @@ import SphericalVector from "../../models/SphericalVector";
 import htmlToElement from "../../utilities/htmlToElement";
 import { BodyAppearance } from "../simulation";
 import NewObjectWindow from "./newObjectWindow";
+import ObjectInfoWindow from "./objectInfoWindow";
 import TimeControlWindow from "./timeControlWindow";
 
 export default class EditObjectWindow extends NewObjectWindow {
