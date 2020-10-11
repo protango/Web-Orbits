@@ -224,7 +224,10 @@ export default class ObjectInfoWindow extends InfoWindow {
 
     attachSimulation(sim: Simulation) {
         this.simulation = sim;
-        sim.onTargetChange.addHandler(() => {
+        sim.onTargetChange.addHandler((b) => {
+            let name = b ? b.name : "No Target";
+            this.elem.querySelector("h2.vel").innerHTML = "Velocity over time: " + name;
+            this.elem.querySelector("h2.acc").innerHTML = "Acceleration over time: " + name;
             this.velPlot.clearData();
             this.accPlot.clearData();
         });
