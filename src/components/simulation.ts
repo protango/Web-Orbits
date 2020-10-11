@@ -39,7 +39,7 @@ class Simulation {
 
     public get bgColor(): Color4 { return this.scene.clearColor; }
     public set bgColor(c: Color4) { this.scene.clearColor = c; }
-    public forceMode: "GPU" | "CPU" = null;
+    public forceMode: "GPU" | "CPU" | "GPU-BH" = null;
     public renderMode: "2D" | "3D" = "3D";
     public spriteManagers: SpriteManager[] = [];
 
@@ -112,7 +112,12 @@ class Simulation {
         engine.runRenderLoop(() => {
             if (timeControlWindow.speedValue !== 0 && this.bodies.length) {
                 let netForces: Vector3[];
-                if ((this.bodies.length > 200 && this.forceMode !== "CPU") || this.forceMode === "GPU") {
+                if ((this.bodies.length > 200 && !this.forceMode) || this.forceMode === "GPU") {
+                    let gpuOuput = this.getGpuKernel()(
+                        this.bodies.map(x => [x.position.x, x.position.y, x.position.z]).flat(),
+                        this.bodies.map(x => x.mass)) as Point3DTuple[];
+                    netForces = gpuOuput.map(x => new Vector3(x[0], x[1], x[2]));
+                } else if (this.forceMode === "GPU-BH") {
                     let gpuOuput = gpu2.processSimulationStep();
                     netForces = gpuOuput.map(x => new Vector3(x[0], x[1], x[2]));
                 } else {

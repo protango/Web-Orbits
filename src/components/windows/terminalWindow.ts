@@ -97,14 +97,14 @@ export default class TerminalWindow extends InfoWindow {
 
     private forcemode(mode: string, self: TerminalWindow) {
         let mdUp = mode.toUpperCase();
-        if (mdUp === "CPU" || mdUp === "GPU") {
+        if (mdUp === "CPU" || mdUp === "GPU" || mdUp === "GPU-BH") {
             self.simulation.forceMode = mdUp;
             self.writeLine("Forcing " + mdUp + " computation");
         } else if (mdUp === "AUTO") {
             self.simulation.forceMode = null;
             self.writeLine("Computation mode set to auto");
         } else {
-            self.writeLine("Invalid mode, must be CPU, GPU or Auto");
+            self.writeLine("Invalid mode, must be CPU, GPU, GPU-BH or Auto");
         }
 
     }

@@ -210,23 +210,24 @@ export class GPUPhysicsEngine2 {
         let siblingShortcuts: Int32Array = new Int32Array(this.nodeCount);
         let i = 0;
         let walk = (node) => {
-            searchOrder[i] = node;
-            siblingShortcuts[i] = -1;
+            let thisI = i;
+            searchOrder[thisI] = node;
+            siblingShortcuts[thisI] = -1;
             i++;
-            if (this.nodeBodyIds[node] !== -1) {
-                return i - 1;
-            } else if (this.nodeMasses[node] > 0) {
+            
+            if (this.nodeChildren[node * 8 + 7] !== 0) {
                 let lastChildSearchPos = -1;
-                for (let i = 0; i< 8; i++) {
+                for (let j = 0; j< 8; j++) {
                     if (lastChildSearchPos !== -1) {
-                        siblingShortcuts[lastChildSearchPos] = walk(this.nodeChildren[node * 8 + i]);
+                        siblingShortcuts[lastChildSearchPos] = walk(this.nodeChildren[node * 8 + j]);
                         lastChildSearchPos = siblingShortcuts[lastChildSearchPos];
                     } else {
-                        lastChildSearchPos = walk(this.nodeChildren[node * 8 + i]);
+                        lastChildSearchPos = walk(this.nodeChildren[node * 8 + j]);
                     }
                 }
-                return i - 1;
             }
+
+            return thisI;
         }
         walk(0);
         let t1 = performance.now();
@@ -240,12 +241,11 @@ export class GPUPhysicsEngine2 {
                 let i = 0;
                 while (i < nodeCount) {
                     let node = searchOrder[i];
-
                     if (nodeMasses[node] !== 0) { // Ignore empty nodes
                         if (nodeBodyIds[node] !== -1) {
                             // External Node (that is not the current body)
                             if (nodeBodyIds[node] !== this.thread.x) {
-                                let nPos = extractV3(nodeCoMs as any, node);
+                                let nPos = extractV3(nodeCoMs, node);
                                 let p2pVect = vectorSubtract(nPos, bPos);
                                 let distance = vectorMagnitude(p2pVect);
                                 let m = (6.67408e-11 * nodeMasses[node] * bodyMasses[this.thread.x]) / Math.pow(distance, 3);
@@ -254,7 +254,7 @@ export class GPUPhysicsEngine2 {
                                 netForce[2] += p2pVect[2] * m;
                             }
                         } else {
-                            let nPos = extractV3(nodeCoMs as any, node);
+                            let nPos = extractV3(nodeCoMs, node);
                             let p2pVect = vectorSubtract(nPos, bPos);
                             let distance = vectorMagnitude(p2pVect);
     
@@ -277,12 +277,12 @@ export class GPUPhysicsEngine2 {
                 }
                 return netForce;
             };
-            /*
-            this._kernel = function(nodeBodyIds: number[], nodeCoMs: number[], nodeMasses: number[], searchOrder: number[], siblingShortcuts: number[], nodeWidths: number[], nodeCount: number, bodyPositions: number[], bodyMasses: number[]) {
+            
+            /*this._kernel = function(nodeBodyIds: number[], nodeCoMs: number[], nodeMasses: number[], searchOrder: number[], siblingShortcuts: number[], nodeWidths: number[], nodeCount: number, bodyPositions: number[], bodyMasses: number[]) {
                 let results = [];
                 for (let i = 0; i<bodyMasses.length; i++) {
                     results.push(
-                        kernelFunc.bind({thread: {x: i}, constants: {theta: 0.25}})(nodeBodyIds, nodeCoMs, nodeMasses, searchOrder, siblingShortcuts, nodeWidths, nodeCount, bodyPositions, bodyMasses)
+                        kernelFunc.bind({thread: {x: i}, constants: {theta: 0}})(nodeBodyIds, nodeCoMs, nodeMasses, searchOrder, siblingShortcuts, nodeWidths, nodeCount, bodyPositions, bodyMasses)
                     )
                 }
                 return results;
@@ -296,6 +296,7 @@ export class GPUPhysicsEngine2 {
                 constants: {theta: 0.25},
                 dynamicArguments: true
             });
+            this._kernel.setLoopMaxIterations(10000000);
         }
 
         // Run GPU kernel
