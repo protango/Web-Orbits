@@ -10,6 +10,7 @@ export default class ObjectInfoWindow extends InfoWindow {
     private constructor() {
         super("Object Info", `
             <div class="objectInfo">
+                <canvas id="velPlot"></canvas>
             </div>`);
     }
 }

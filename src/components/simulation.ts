@@ -18,6 +18,7 @@ import FastAverageColor from 'fast-average-color';
 import { IBody } from '../models/Body/IBody';
 import Body2D from '../models/Body/Body2D';
 import whiteCircleSrc from 'assets/WhiteCircle.png';
+import EditObjectWindow from './windows/editObjectWindow';
 
 export enum BodyAppearance {
     Blank = "Blank",
@@ -91,6 +92,7 @@ class Simulation {
         SimulationPropertiesWindow.instance.attachSimulation(this);
         FileWindow.instance.attachSimulation(this);
         TerminalWindow.instance.attachSimulation(this);
+        EditObjectWindow.instance.attachSimulation(this);
 
         // register bodies
         let sunBody = this.addBody("Sun", 100000, Vector3.Zero(), 30, BodyAppearance.Sun, Vector3.Zero(), 1000);

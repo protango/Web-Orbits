@@ -27,15 +27,15 @@ interface FormFields {
 };
 
 export default class NewObjectWindow extends InfoWindow {
-    private static _instance: NewObjectWindow
+    protected static _instance: NewObjectWindow
     public static get instance() : NewObjectWindow {
         return this._instance ?? (this._instance = new NewObjectWindow());
     }
 
     private simulation: Simulation;
-    private formFields: FormFields;
+    protected formFields: FormFields;
 
-    private constructor() {
+    protected constructor() {
         super("New Object", `
             <div class="newObject">
                 <form>

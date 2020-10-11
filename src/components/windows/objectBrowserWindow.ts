@@ -5,6 +5,7 @@ import NewObjectWindow from "./newObjectWindow";
 import Body3D from "../../models/Body/Body3D";
 import HTMLRepeater from "../../models/HTMLRepeater";
 import { IBody } from "../../models/Body/IBody";
+import EditObjectWindow from "./editObjectWindow";
 
 export default class ObjectBrowserWindow extends InfoWindow {
     private static _instance: ObjectBrowserWindow
@@ -68,12 +69,13 @@ export default class ObjectBrowserWindow extends InfoWindow {
                 <td>${body.name}</td>
                 <td>${body.mass}</td>
                 <td>${body.diameter}</td>
-                <td class="infoBtnCell"><i class="fas fa-info-circle"></i></td>
+                <td class="infoBtnCell"><i class="fas fa-pen-square"></i></td>
             `;
             let bodyCheck = newRow.querySelector(".bodyCheck") as HTMLInputElement;
             bodyCheck.onchange = (e) => this.updateSelect(e.target as HTMLInputElement);
             bodyCheck.onclick = (e) => e.stopPropagation();
             newRow.onclick = () => { this.simulation.setTarget(body) };
+            (newRow.querySelector(".infoBtnCell i") as HTMLElement).onclick = (e) => { EditObjectWindow.instance.setBodyAndOpen(body); e.stopPropagation() }
             return newRow;
         }, tbody, sim.bodies);
         this.simulation.onAddBodies.addHandler(b => {repeater.notifyObjsAdded(b); this.updateSelect(null);});

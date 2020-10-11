@@ -26,10 +26,15 @@ export default class SphericalVector {
 
     public static fromCartesianVals(x: number, y: number, z: number): SphericalVector {
         let r = Math.sqrt(Math.pow(x,2) + Math.pow(y,2) + Math.pow(z,2));
-        return new SphericalVector(
+        let output = new SphericalVector(
             r,
             Math.acos(y/r),
             Math.atan(z/x) + (x < 0 ? Math.PI : 0)
         );
+
+        if (isNaN(output.azimuth)) output.azimuth = 0;
+        if (isNaN(output.inclination)) output.inclination = 0;
+
+        return output;
     }
 }

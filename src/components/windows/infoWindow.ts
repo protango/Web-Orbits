@@ -194,4 +194,9 @@ export default abstract class InfoWindow {
             this.otherWindows.splice(idx, 1);
         }
     }
+
+    protected changeTitle(title: string) {
+        this.title = title;
+        (this.elem.querySelector(".topBar h1") as HTMLHeadingElement).innerText = title;
+    }
 }

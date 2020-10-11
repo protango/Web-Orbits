@@ -11,16 +11,30 @@ class Body3D implements IBody {
     private currentDiamater: number;
     private scale: number = 1;
     private originalDiamater: number;
+    private _appearance: BodyAppearance;
+    private _simulation: Simulation;
     
 
     // Public API
-    public id: number;
+    public readonly id: number;
     public mass: number;
     public velocity: Vector3 = new Vector3(0, 0, 0);
     public get mesh() : Mesh { return this._mesh; }
     public get light() : PointLight { return this._light; }
     public get lightRange(): number { return this._light ? this._light.range : 0; }
-    public set lightRange(v: number) { if (this._light) this._light.range = v; }
+    public set lightRange(v: number) {
+        if (v == null || v === 0) {
+            if (this._light) {
+                this._light.dispose(); 
+                this._light = null; 
+            }
+        } else {
+            if (!this._light) {
+                this._light = new PointLight(this.name+"Light", this.position, this._simulation.scene);
+            }
+            this._light.range = v;
+        }
+    }
     public get position() : Vector3 { return this._mesh.position; }
     public set position(v: Vector3) { 
         this._mesh.position = v; 
@@ -36,7 +50,12 @@ class Body3D implements IBody {
         this.mesh.scaling.y = this.scale;
         this.mesh.scaling.z = this.scale;
     }
-    public appearance: BodyAppearance;
+    public get appearance() { return this._appearance; }
+    public set appearance(val: BodyAppearance) { 
+        if (!Object.keys(this._simulation.materials).includes(val)) val = BodyAppearance.Blank;
+        this._appearance = val;
+        this._mesh.material = this._simulation.materials[val];
+    }
 
     public dispose(): void {
         this.mesh.dispose();
@@ -44,15 +63,11 @@ class Body3D implements IBody {
     }
 
     constructor(name: string, mass: number, position: Vector3, diameter: number, appearance: BodyAppearance, sim: Simulation, velocity: Vector3 = null, lightRange: number = null) {
+        this._simulation = sim;
         this._mesh = MeshBuilder.CreateSphere(name, { diameter: diameter }, sim.scene);
-        this._mesh.material = sim.materials[appearance];
 
         this.position = position;
-        if (lightRange != null && lightRange > 0)
-        {
-            this._light = new PointLight(name+"Light", position, sim.scene);
-            this.lightRange = lightRange;
-        }
+        this.lightRange = lightRange;
 
         if (velocity) this.velocity = velocity;
         this.mass = mass;
