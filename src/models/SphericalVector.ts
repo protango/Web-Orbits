@@ -25,11 +25,11 @@ export default class SphericalVector {
     }
 
     public static fromCartesianVals(x: number, y: number, z: number): SphericalVector {
-        let r = Math.sqrt(x^2 + y^2 + z^2);
+        let r = Math.sqrt(Math.pow(x,2) + Math.pow(y,2) + Math.pow(z,2));
         return new SphericalVector(
             r,
-            Math.atan(z/x),
-            Math.acos(y/r)
+            Math.acos(y/r),
+            Math.atan(z/x) + (x < 0 ? Math.PI : 0)
         );
     }
 }
