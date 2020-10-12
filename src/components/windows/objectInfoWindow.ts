@@ -38,6 +38,7 @@ class Plot {
 
     public clearData() {
         this.data.fill(null);
+        this.render();
     }
 
     public render() {
@@ -125,8 +126,8 @@ class Plot {
         if (max === -Infinity) max = 1;
 
         let yRange = max - min;
-        if (yRange === 0) {
-            max+=1; min-=1; yRange = max-min;
+        if (yRange < 1e-10) {
+            max+=5e-11; min-=5e-11; yRange = max-min;
         }
         this.yLims[0] = min;
         this.yLims[1] = max;

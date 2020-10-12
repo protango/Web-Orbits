@@ -87,7 +87,7 @@ export default class ObjectBrowserWindow extends InfoWindow {
         let rows = this.elem.querySelectorAll(".objectTable tbody tr.highlight") as NodeListOf<HTMLTableRowElement>;
         rows.forEach(x => x.classList.remove("highlight"));
 
-        let row = this.elem.querySelector(".objectTable tbody tr#BodyRow" + body.id);
+        let row = this.elem.querySelector(".objectTable tbody tr#BodyRow" + body?.id);
         if (row) row.classList.add("highlight");
     }
 

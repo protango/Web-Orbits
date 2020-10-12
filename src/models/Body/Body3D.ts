@@ -66,6 +66,7 @@ class Body3D implements IBody {
     constructor(name: string, mass: number, position: Vector3, diameter: number, appearance: BodyAppearance, sim: Simulation, velocity: Vector3 = null, lightRange: number = null) {
         this._simulation = sim;
         this._mesh = MeshBuilder.CreateSphere(name, { diameter: diameter }, sim.scene);
+        this._mesh.isPickable = true;
 
         this.position = position;
         this.lightRange = lightRange;

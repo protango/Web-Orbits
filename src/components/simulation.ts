@@ -61,6 +61,7 @@ class Simulation {
         // camera
         this.camera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 60, Vector3.Zero(), scene);
         this.camera.attachControl(this.elem, true);
+        this.camera.maxZ = 1e50;
 
         // materials
         var mercuryMaterial = new StandardMaterial("mercuryMaterial", scene);
@@ -104,7 +105,7 @@ class Simulation {
         this.setTarget(sunBody);
 
         // Register event handlers
-        scene.onPointerUp = (evt, pickInfo, type) => this.pointerUpHandler(evt, pickInfo, type);
+        scene.onPointerDown = (evt, pickInfo, type) => this.pointerDownHandler(evt, pickInfo, type);
 
         // Render loop
         let fpsLabel = document.getElementById("fpsCounter");
@@ -205,20 +206,23 @@ class Simulation {
         if (this.targetBody === b) return;
 
         this.targetBody = b;
-        if (b instanceof Body3D) {
-            this.camera.setTarget(b.mesh);
+        if (b) {
+            if (b instanceof Body3D) {
+                this.camera.setTarget(b.mesh);
+            } else {
+                this.camera.setTarget(b.position);
+            }
             this.camera.radius = b.diameter * 5;
-        } else if (b) {
-            this.camera.setTarget(b.position);
-            this.camera.radius = b.diameter * 5;
+            this.camera.wheelPrecision = 10/b.diameter;
         } else {
             this.camera.setTarget(Vector3.Zero());
+            this.camera.radius = 5;
         }
 
         this.onTargetChange.trigger(b);
     }
 
-    private pointerUpHandler(evt: PointerEvent, pickInfo: PickingInfo, type: PointerEventTypes) {
+    private pointerDownHandler(evt: PointerEvent, pickInfo: PickingInfo, type: PointerEventTypes) {
         if (pickInfo.hit) {
             let b = this.bodies.find(x => {
                 if (x instanceof Body3D) 
