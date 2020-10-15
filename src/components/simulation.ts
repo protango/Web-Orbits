@@ -105,7 +105,13 @@ class Simulation {
         this.setTarget(sunBody);
 
         // Register event handlers
-        scene.onPointerDown = (evt, pickInfo, type) => { this.pointerDownHandler(evt, pickInfo, type); }
+        scene.onPointerObservable.add((pointerInfo) => {
+            switch (pointerInfo.type) {
+                case BABYLON.PointerEventTypes.POINTERDOWN:
+                    this.pointerDownHandler(pointerInfo.event as PointerEvent, pointerInfo.pickInfo, pointerInfo.type);
+                    break;
+            }
+        });
 
         // Render loop
         let fpsLabel = document.getElementById("fpsCounter");

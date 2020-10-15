@@ -1,5 +1,4 @@
 import { Vector3 } from "babylonjs";
-import { NodeMaterialBuildStateSharedData } from "babylonjs/Materials/Node/nodeMaterialBuildStateSharedData";
 
 export default class SphericalVector {
     public radius: number;
