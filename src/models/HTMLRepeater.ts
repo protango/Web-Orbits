@@ -11,9 +11,8 @@ export default class HTMLRepeater<T> {
     }
 
     public clear() {
+        this.elems.forEach(x => x.remove());
         this.elems.clear();
-        var cNode = this.container.cloneNode(false);
-        this.container.parentNode.replaceChild(cNode, this.container);
     }
 
     public regenerate(objs: T[]) {
