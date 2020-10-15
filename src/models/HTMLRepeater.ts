@@ -10,6 +10,17 @@ export default class HTMLRepeater<T> {
         this.notifyObjsAdded(items);
     }
 
+    public clear() {
+        this.elems.clear();
+        var cNode = this.container.cloneNode(false);
+        this.container.parentNode.replaceChild(cNode, this.container);
+    }
+
+    public regenerate(objs: T[]) {
+        this.clear();
+        this.notifyObjsAdded(objs);
+    }
+
     public notifyObjsUpdated(objs: T[]) {
         for (let obj of objs) {
             let elem = this.elems.get(obj);
