@@ -61,7 +61,7 @@ class Simulation {
         // camera
         this.camera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 60, Vector3.Zero(), scene);
         this.camera.attachControl(this.elem, true);
-        this.camera.maxZ = 1e50;
+        //this.camera.maxZ = 1e10; This cana cause picking to fail.
 
         // materials
         var mercuryMaterial = new StandardMaterial("mercuryMaterial", scene);
@@ -105,7 +105,7 @@ class Simulation {
         this.setTarget(sunBody);
 
         // Register event handlers
-        scene.onPointerDown = (evt, pickInfo, type) => this.pointerDownHandler(evt, pickInfo, type);
+        scene.onPointerDown = (evt, pickInfo, type) => { this.pointerDownHandler(evt, pickInfo, type); }
 
         // Render loop
         let fpsLabel = document.getElementById("fpsCounter");
