@@ -6,6 +6,7 @@ import htmlToElement from "../../utilities/htmlToElement";
 import openFileDialog from "../../utilities/openFileDialog";
 import DialogWindow from "./dialogWindow";
 import { Vector3 } from "babylonjs";
+import TimeControlWindow from "./timeControlWindow";
 
 export default class FileWindow extends InfoWindow {
     private static _instance: FileWindow
@@ -62,6 +63,7 @@ export default class FileWindow extends InfoWindow {
             globalLight.onchange(null);
 
             this.simulation.clearBodies();
+            if (ssim.dt != null) TimeControlWindow.instance.speedValue = ssim.dt;
             let bodies = ssim.bodies.map(b => 
                 this.simulation.createBody(
                     b.name, 

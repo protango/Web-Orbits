@@ -10,6 +10,7 @@ import deg2rad from "../../utilities/deg2rad";
 import HTMLRepeater from "../../models/HTMLRepeater";
 import Body3D from "../../models/Body/Body3D";
 import { IBody } from "../../models/Body/IBody";
+import { vectorAdd } from "../../models/PhysicsEngine";
 
 interface FormFields {
     name: HTMLInputElement,
@@ -32,7 +33,7 @@ export default class NewObjectWindow extends InfoWindow {
         return this._instance ?? (this._instance = new NewObjectWindow());
     }
 
-    private simulation: Simulation;
+    protected simulation: Simulation;
     protected formFields: FormFields;
 
     protected constructor() {
@@ -137,15 +138,21 @@ export default class NewObjectWindow extends InfoWindow {
         // Validate input
         if (!this.formFields.name.value) new DialogWindow("Object must have a name", "Error", this);
 
+        let refPosition = Vector3.Zero();
+        if (this.formFields.refObj.selectedIndex > 0) {
+            let b = this.simulation.bodies[this.formFields.refObj.selectedIndex - 1];
+            if (b) refPosition = b.position;
+        }
+        
         // Add body
         this.simulation.addBody(
             this.formFields.name.value,
             this.formFields.mass.valueAsNumber,
-            new SphericalVector(
+            vectorAdd(new SphericalVector(
                 this.formFields.posR.valueAsNumber,
                 deg2rad(this.formFields.posTheta.valueAsNumber),
                 deg2rad(this.formFields.posPhi.valueAsNumber),
-            ).toCartesian(),
+            ).toCartesian(), refPosition),
             this.formFields.diameter.valueAsNumber,
             this.formFields.appearance.value as BodyAppearance,
             new SphericalVector(

@@ -50,4 +50,25 @@ function accelerationFromForce(force: Vector3, mass: number): Vector3 {
     return vectorDivide(force, mass);
 }
 
+function vectorRotate(v: Vector3, u: Vector3, θ: number): Vector3 {
+    u = normalize(u);
+    let R = [[Math.cos(θ) + Math.pow(u.x,2)*(1-Math.cos(θ)), u.x*u.y*(1-Math.cos(θ))-u.z*Math.sin(θ), u.x*u.z*(1-Math.cos(θ))+u.y*Math.sin(θ)],
+             [u.y*u.x*(1-Math.cos(θ))+u.z*Math.sin(θ), Math.cos(θ)+Math.pow(u.y,2)*(1-Math.cos(θ)), u.y*u.z*(1-Math.cos(θ)), u.y*u.z*(1-Math.cos(θ))-u.x*Math.sin(θ)],
+             [u.z*u.x*(1-Math.cos(θ))-u.y*Math.sin(θ), u.z*u.y*(1-Math.cos(θ))+u.x*Math.sin(θ), Math.cos(θ)+Math.pow(u.z,2)*(1-Math.cos(θ))]];
+    return transform(R, v);
+}
+
+function normalize(v: Vector3) {
+    let mag = vectorMagnitude(v);
+    return vectorDivide(v, mag);
+}
+
+function transform(T: number[][], v: Vector3) {
+    return new Vector3(
+        T[0][0] * v.x + T[0][1] * v.y + T[0][2] * v.z,
+        T[1][0] * v.x + T[1][1] * v.y + T[1][2] * v.z,
+        T[2][0] * v.x + T[2][1] * v.y + T[2][2] * v.z
+    )
+}
+
 export {calcNetForce, calcDistance, vectorAdd, vectorSubtract, vectorMultiply, vectorDivide, vectorMagnitude, accelerationFromForce, integrateMotion};

@@ -1,8 +1,5 @@
-import earthTextureSrc from 'assets/earth.jpg';
-import sunTextureSrc from 'assets/sun.jpg';
-import mercuryTextureSrc from 'assets/mercury.jpg';
-import earthCloudsTexture from 'assets/earth_clouds.jpg';
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer, Material, PickingInfo, PointerEventTypes, LinesMesh, Light, SpriteManager } from "babylonjs";
+
+import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder, Mesh, Texture, StandardMaterial, PointLight, Color3, Color4, GlowLayer, Material, PickingInfo, PointerEventTypes, LinesMesh, Light, SpriteManager, BackgroundMaterial, CubeTexture } from "babylonjs";
 import * as $ from "jquery";
 import Body3D from "../models/Body/Body3D";
 import { calcNetForce, integrateMotion, accelerationFromForce, vectorMagnitude, vectorDivide } from '../models/PhysicsEngine';
@@ -21,11 +18,36 @@ import whiteCircleSrc from 'assets/WhiteCircle.png';
 import EditObjectWindow from './windows/editObjectWindow';
 import ObjectInfoWindow from './windows/objectInfoWindow';
 
+import sunSrc from 'assets/sun.jpg';
+import mercurySrc from 'assets/mercury.jpg';
+import earthSrc from 'assets/earth.jpg';
+import jupiterSrc from 'assets/jupiter.jpg';
+import marsSrc from 'assets/mars.jpg';
+import neptuneSrc from 'assets/neptune.jpg';
+import saturnSrc from 'assets/saturn.jpg';
+import uranusSrc from 'assets/uranus.jpg';
+import venusSrc from 'assets/venus.jpg';
+
+import skyBoxSrc1 from 'assets/stars_px.jpg';
+import skyBoxSrc2 from 'assets/stars_py.jpg';
+import skyBoxSrc3 from 'assets/stars_pz.jpg';
+import skyBoxSrc4 from 'assets/stars_nx.jpg';
+import skyBoxSrc5 from 'assets/stars_ny.jpg';
+import skyBoxSrc6 from 'assets/stars_nz.jpg';
+import SerializableSimulation from "../models/Serialization/SerializableSimulation";
+var skyBoxSrcs = [skyBoxSrc1, skyBoxSrc2, skyBoxSrc3, skyBoxSrc4, skyBoxSrc5, skyBoxSrc6];
+
 export enum BodyAppearance {
     Blank = "Blank",
     Sun = "Sun", 
-    Earth = "Earth", 
-    Mercury = "Mercury"
+    Mercury = "Mercury",
+    Venus = "Venus",
+    Earth = "Earth",
+    Mars = "Mars",
+    Jupiter = "Jupiter",
+    Saturn = "Saturn",
+    Uranus = "Uranus",
+    Neptune = "Neptune"
 }
 
 type Point3DTuple = [number, number, number];
@@ -46,6 +68,8 @@ class Simulation {
     public materials : {[key in BodyAppearance]: Material};
     private gpuKernel: IKernelRunShortcut;
 
+    public skyBox: Mesh;
+
     constructor() {
         this.elem = document.createElement("canvas");
         this.elem.id = "renderCanvas";
@@ -61,25 +85,28 @@ class Simulation {
         // camera
         this.camera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 60, Vector3.Zero(), scene);
         this.camera.attachControl(this.elem, true);
-        //this.camera.maxZ = 1e10; This cana cause picking to fail.
+        this.camera.maxZ = 1e5; //This cana cause picking to fail.
 
         // materials
-        var mercuryMaterial = new StandardMaterial("mercuryMaterial", scene);
-        mercuryMaterial.diffuseTexture = new Texture(mercuryTextureSrc, scene);
-        mercuryMaterial.specularColor = Color3.Black();
-
-        var sunMaterial = new StandardMaterial("sunMaterial", scene);
-        sunMaterial.diffuseTexture = new Texture(sunTextureSrc, scene);
-        sunMaterial.emissiveColor = new Color3(241, 135, 39);
-
-        var earthMaterial = new StandardMaterial("earthMaterial", scene);
-        earthMaterial.diffuseTexture = new Texture(earthTextureSrc, scene);
+        function createMaterial(name: string, src: string, specularColor: Color3 = null, emissiveColor: Color3 = null) {
+            let mat = new StandardMaterial(name + "Material", scene);
+            mat.diffuseTexture = new Texture(src, scene);
+            if (specularColor) mat.specularColor = specularColor;
+            if (emissiveColor) mat.emissiveColor = emissiveColor;
+            return mat;
+        }
 
         this.materials = {
-            [BodyAppearance.Sun]: sunMaterial,
-            [BodyAppearance.Mercury]: mercuryMaterial,
-            [BodyAppearance.Earth]: earthMaterial,
-            [BodyAppearance.Blank]: new StandardMaterial("blankMaterial", scene)
+            [BodyAppearance.Sun]: createMaterial("sun", sunSrc, Color3.Black(), new Color3(241, 135, 39)),
+            [BodyAppearance.Mercury]: createMaterial("mercury", mercurySrc, Color3.Black()),
+            [BodyAppearance.Earth]: createMaterial("earth", earthSrc),
+            [BodyAppearance.Blank]: new StandardMaterial("blankMaterial", scene),
+            [BodyAppearance.Jupiter]: createMaterial("jupiter", jupiterSrc, Color3.Black()),
+            [BodyAppearance.Mars]: createMaterial("mars", marsSrc, Color3.Black()),
+            [BodyAppearance.Neptune]: createMaterial("neptune", neptuneSrc, Color3.Black()),
+            [BodyAppearance.Saturn]: createMaterial("saturn", saturnSrc, Color3.Black()),
+            [BodyAppearance.Uranus]: createMaterial("uranus", uranusSrc, Color3.Black()),
+            [BodyAppearance.Venus]: createMaterial("venus", venusSrc, Color3.Black()),
         };
 
         // glow layer for sun
@@ -97,13 +124,6 @@ class Simulation {
         EditObjectWindow.instance.attachSimulation(this);
         ObjectInfoWindow.instance.attachSimulation(this);
 
-        // register bodies
-        let sunBody = this.addBody("Sun", 100000, Vector3.Zero(), 30, BodyAppearance.Sun, Vector3.Zero(), 1000);
-        this.addBody("Earth", 200, new Vector3(-60, 0, 0), 10, BodyAppearance.Earth, new Vector3(0, 0.0002, 0.0002));
-        this.addBody("Mercury", 100, new Vector3(50, 0, 0), 10, BodyAppearance.Mercury, new Vector3(0, 0.0003, 0));
-
-        this.setTarget(sunBody);
-
         // Register event handlers
         scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
@@ -113,7 +133,17 @@ class Simulation {
             }
         });
 
+        //Skybox
+        this.skyBox = Mesh.CreateBox("BackgroundSkybox", 1e5, scene, undefined, BABYLON.Mesh.BACKSIDE);
+    
+        // Create and tweak the background material.
+        var backgroundMaterial = new BackgroundMaterial("backgroundMaterial", scene);
+        backgroundMaterial.reflectionTexture = new CubeTexture("", scene, null, null, skyBoxSrcs);
+        backgroundMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
+        this.skyBox.material = backgroundMaterial;
+
         // Render loop
+        this.initialiseDefaultModel();
         let fpsLabel = document.getElementById("fpsCounter");
         let c = 0;
         let timeControlWindow = TimeControlWindow.instance;
@@ -156,6 +186,13 @@ class Simulation {
         });
 
         window.addEventListener("resize", function(){engine.resize();});
+    }
+
+    public async initialiseDefaultModel() {
+        let ssim = (await import('../defaultModel.json')) as SerializableSimulation;
+        FileWindow.instance.loadIntoSimulation(ssim);
+
+        this.setTarget(this.bodies[0]);
     }
 
     public createBody(name: string, mass: number, position: Vector3, diameter: number, appearance: BodyAppearance, velocity: Vector3 = null, lightRange: number = null) : IBody {
@@ -230,6 +267,7 @@ class Simulation {
 
     private pointerDownHandler(evt: PointerEvent, pickInfo: PickingInfo, type: PointerEventTypes) {
         if (pickInfo.hit) {
+            if (pickInfo.pickedMesh.name === "BackgroundSkybox") return;
             let b = this.bodies.find(x => {
                 if (x instanceof Body3D) 
                     return x.mesh === pickInfo.pickedMesh;
@@ -276,6 +314,7 @@ class Simulation {
     }
 
     public hideAxes() {
+        if (!this.axesLines) return;
         this.axesLines.forEach(x => x.dispose());
         this.axesLines = null;
     }
@@ -285,8 +324,8 @@ class Simulation {
     public enableGlobalLight() {
         if (this.globalLights) return;
         this.globalLights = [
-            new HemisphericLight("Global_Up",new Vector3(0, 0, 1), this.scene),
-            new HemisphericLight("Global_Down",new Vector3(0, 0, -1), this.scene)
+            new HemisphericLight("Global_xPos",new Vector3(1, 0, 0), this.scene),
+            new HemisphericLight("Global_xNeg",new Vector3(-1, 0, 0), this.scene)
         ];
     }
     public disableGlobalLight() {

@@ -1,6 +1,10 @@
+import { Vector3 } from "babylonjs";
 import { IBody } from "../../models/Body/IBody";
+import { vectorAdd } from "../../models/PhysicsEngine";
 import SphericalVector from "../../models/SphericalVector";
+import deg2rad from "../../utilities/deg2rad";
 import htmlToElement from "../../utilities/htmlToElement";
+import rad2deg from "../../utilities/rad2deg";
 import { BodyAppearance } from "../simulation";
 import NewObjectWindow from "./newObjectWindow";
 import ObjectInfoWindow from "./objectInfoWindow";
@@ -55,13 +59,13 @@ export default class EditObjectWindow extends NewObjectWindow {
         this.formFields.refObj.value = "Origin";
         let sphericalPos = SphericalVector.fromCartesian(body.position);
         this.formFields.posR.valueAsNumber = Math.round(sphericalPos.radius * roundingFactor) / roundingFactor;
-        this.formFields.posTheta.valueAsNumber = Math.round(sphericalPos.inclination * roundingFactor) / roundingFactor;
-        this.formFields.posPhi.valueAsNumber = Math.round(sphericalPos.azimuth * roundingFactor) / roundingFactor;
+        this.formFields.posTheta.valueAsNumber = Math.round(rad2deg(sphericalPos.inclination) * roundingFactor) / roundingFactor;
+        this.formFields.posPhi.valueAsNumber = Math.round(rad2deg(sphericalPos.azimuth) * roundingFactor) / roundingFactor;
 
         let sphericalVel = SphericalVector.fromCartesian(body.velocity);
         this.formFields.velR.valueAsNumber = Math.round(sphericalVel.radius * roundingFactor) / roundingFactor;
-        this.formFields.velTheta.valueAsNumber = Math.round(sphericalVel.inclination * roundingFactor) / roundingFactor;
-        this.formFields.velPhi.valueAsNumber = Math.round(sphericalVel.azimuth * roundingFactor) / roundingFactor;
+        this.formFields.velTheta.valueAsNumber = Math.round(rad2deg(sphericalVel.inclination) * roundingFactor) / roundingFactor;
+        this.formFields.velPhi.valueAsNumber = Math.round(rad2deg(sphericalVel.azimuth) * roundingFactor) / roundingFactor;
     }
 
     private save() {
@@ -71,10 +75,16 @@ export default class EditObjectWindow extends NewObjectWindow {
         this.body.appearance = this.formFields.appearance.value as BodyAppearance;
         this.body.lightRange = this.formFields.lightRange.valueAsNumber;
 
-        let sphericalPos = new SphericalVector(this.formFields.posR.valueAsNumber, this.formFields.posTheta.valueAsNumber, this.formFields.posPhi.valueAsNumber);
-        this.body.position = sphericalPos.toCartesian();
+        let refPosition = Vector3.Zero();
+        if (this.formFields.refObj.selectedIndex > 0) {
+            let b = this.simulation.bodies[this.formFields.refObj.selectedIndex - 1];
+            if (b) refPosition = b.position;
+        }
+        
+        let sphericalPos = new SphericalVector(this.formFields.posR.valueAsNumber, deg2rad(this.formFields.posTheta.valueAsNumber), deg2rad(this.formFields.posPhi.valueAsNumber));
+        this.body.position = vectorAdd(sphericalPos.toCartesian(), refPosition);
 
-        let sphericalVel = new SphericalVector(this.formFields.velR.valueAsNumber, this.formFields.velTheta.valueAsNumber, this.formFields.velPhi.valueAsNumber);
+        let sphericalVel = new SphericalVector(this.formFields.velR.valueAsNumber, deg2rad(this.formFields.velTheta.valueAsNumber), deg2rad(this.formFields.velPhi.valueAsNumber));
         this.body.velocity = sphericalVel.toCartesian();
     }
 

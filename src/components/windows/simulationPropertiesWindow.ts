@@ -18,7 +18,9 @@ export default class SimulationPropertiesWindow extends InfoWindow {
                     <input type="checkbox" id="showAxes" />
                     <label for="showAxes">Show global axes</label><br>
                     <input type="checkbox" id="globalLight" />
-                    <label for="globalLight">Global light</label>
+                    <label for="globalLight">Global light</label><br>
+                    <input type="checkbox" id="skybox" checked />
+                    <label for="skybox">Enable background</label>
                     <h1 class="subSection">Graphics</h1>
                     <div style="margin-top: 5px;">
                         <label for="renderModeSelect">Render Mode:</label>
@@ -29,9 +31,10 @@ export default class SimulationPropertiesWindow extends InfoWindow {
                     </div>
                 </form>
             </div>`);
-            this.resize(235,177);
+            this.resize(235,197);
         let showAxesCheck = this.elem.querySelector("#showAxes") as HTMLInputElement;
         let globalLightCheck = this.elem.querySelector("#globalLight") as HTMLInputElement;
+        let skyBoxCheck = this.elem.querySelector("#skybox") as HTMLInputElement;
         let renderModeSelect = this.elem.querySelector("#renderModeSelect") as HTMLSelectElement;
         showAxesCheck.onchange = () => {
             if (showAxesCheck.checked) this.simulation.showAxes(100);
@@ -44,15 +47,18 @@ export default class SimulationPropertiesWindow extends InfoWindow {
         renderModeSelect.onchange = () => {
             this.simulation.setRenderMode(renderModeSelect.value as any);
         }
+        skyBoxCheck.onchange = () => {
+            this.simulation.skyBox.setEnabled(skyBoxCheck.checked);
+        }
     }
 
     public attachSimulation(sim: Simulation) {
         this.simulation = sim;
 
         //TESTING ONLY - show axes by default
-        let showAxesCheck = this.elem.querySelector("#showAxes") as HTMLInputElement;
-        showAxesCheck.checked = true;
-        showAxesCheck.onchange(null);
+        //let showAxesCheck = this.elem.querySelector("#showAxes") as HTMLInputElement;
+        //showAxesCheck.checked = true;
+        //showAxesCheck.onchange(null);
     }
 }
 
