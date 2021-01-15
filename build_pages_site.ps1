@@ -10,5 +10,8 @@ npm run build
 # copy build files to docs directory
 Copy-Item -Path "dist\public" -Destination "docs" -Recurse
 
+# delete mapping files
+Remove-Item -Path "docs\*.map"
+
 # restore webpack config
 Set-Content -Path webpack.config.js -Value $webpackconf -NoNewline
