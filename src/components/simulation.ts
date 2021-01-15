@@ -129,14 +129,14 @@ class Simulation {
         // Register event handlers
         scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
-                case BABYLON.PointerEventTypes.POINTERDOWN:
+                case PointerEventTypes.POINTERDOWN:
                     this.pointerDownHandler(pointerInfo.event as PointerEvent, pointerInfo.pickInfo, pointerInfo.type);
                     break;
             }
         });
 
         //Skybox
-        this.skyBox = Mesh.CreateBox("BackgroundSkybox", 1e5, scene, undefined, BABYLON.Mesh.BACKSIDE);
+        this.skyBox = Mesh.CreateBox("BackgroundSkybox", 1e5, scene, undefined, Mesh.BACKSIDE);
     
         // Create and tweak the background material.
         var backgroundMaterial = new BackgroundMaterial("backgroundMaterial", scene);
