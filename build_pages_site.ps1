@@ -1,6 +1,9 @@
 # backup webpack config
 $webpackconf = Get-Content -path webpack.config.js -Raw
 
+# delete docs folder
+Remove-Item -Path "docs" -Recurse -ErrorAction Ignore
+
 # change webpack to production
 ($webpackconf -replace "mode:\s*['""]\w*['""]","mode: 'production'") | Set-Content -Path webpack.config.js -NoNewline
 
