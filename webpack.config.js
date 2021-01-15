@@ -23,7 +23,8 @@ module.exports = {
     devtool: 'source-map',
     plugins: [
         new HtmlWebpackPlugin({
-            title: 'Web-Orbits'
+            template: './src/index.html',
+            favicon: "./assets/favicon.ico"
         }),
         new MiniCssExtractPlugin()
     ],

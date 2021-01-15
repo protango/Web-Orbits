@@ -406,6 +406,34 @@ input[type=number] {
     }
 }
 
+#licences {
+    position: fixed;
+    z-index: 11;
+    background: rgba(255,255,255,0.9);
+    padding: 20px;
+    left: calc(50% - 300px);
+    width: 600px;
+    text-align: center;
+
+    .close {
+        text-decoration: underline;
+        color: #9e0000;
+        cursor: pointer;
+        margin-top: 40px;
+        display: block;
+    }
+}
+
+#licenceslink {
+    position: fixed;
+    color: #515151;
+    text-decoration: underline;
+    cursor: pointer;
+    left: 5px;
+    bottom: 5px;
+    font-size: 12px;
+}
+
 html {
     height  : 100%;
     overflow: hidden;
