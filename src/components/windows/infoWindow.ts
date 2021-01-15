@@ -119,26 +119,49 @@ export default abstract class InfoWindow {
     private attachDragControl(topBarElem: HTMLDivElement) {
         let self = this;
         let dragOffset: number[] = null;
-        let mouseMoveHandler = (e: MouseEvent) => {
-            self.elem.style.left = (e.pageX - dragOffset[0]) + "px";
-            self.elem.style.top = (e.pageY - dragOffset[1]) + "px";
+        let mouseMoveHandler = (e: MouseEvent | TouchEvent) => {
+            let pagexy: number[];
+            if (e instanceof MouseEvent) {
+                pagexy = [e.pageX, e.pageY];
+            } else if (e instanceof TouchEvent) {
+                pagexy = [e.touches[0].pageX, e.touches[0].pageY];
+            }
+
+            self.elem.style.left = (pagexy[0] - dragOffset[0]) + "px";
+            self.elem.style.top = (pagexy[1] - dragOffset[1]) + "px";
+            e.preventDefault();
+            e.stopPropagation();
         }
-        let mouseUpHandler = (e: MouseEvent) => {
+        let mouseUpHandler = (e: MouseEvent | TouchEvent) => {
             if (dragOffset != null) {
                 dragOffset = null;
                 this.elem.style.userSelect = null;
-                document.body.removeEventListener("mouseup", mouseUpHandler);
-                document.body.removeEventListener("mousemove", mouseMoveHandler);
+
+                if (e instanceof MouseEvent) {
+                    document.body.removeEventListener("mouseup", mouseUpHandler);
+                    document.body.removeEventListener("mousemove", mouseMoveHandler);
+                } else if (e instanceof TouchEvent) {
+                    document.body.removeEventListener("touchend", mouseUpHandler);
+                    document.body.removeEventListener("touchmove", mouseMoveHandler);
+                }
             }
         }
-        topBarElem.onmousedown = (e) => {
+        topBarElem.onmousedown = topBarElem.ontouchstart = (e : MouseEvent | TouchEvent) => {
             if (dragOffset == null) {
-                dragOffset = [e.offsetX, e.offsetY];
                 this.elem.style.userSelect = "none";
-                document.body.addEventListener("mouseup", mouseUpHandler);
-                document.body.addEventListener("mousemove", mouseMoveHandler);
+                if (e instanceof MouseEvent) {
+                    dragOffset = [e.offsetX, e.offsetY];
+                    document.body.addEventListener("mouseup", mouseUpHandler);
+                    document.body.addEventListener("mousemove", mouseMoveHandler);
+                } else if (e instanceof TouchEvent) {
+                    let bpos = (e.target as HTMLElement).getBoundingClientRect();
+                    dragOffset = [e.touches[0].pageX - bpos.x, e.touches[0].pageY - bpos.y]
+                    document.body.addEventListener("touchend", mouseUpHandler);
+                    document.body.addEventListener("touchmove", mouseMoveHandler);
+                }
             }
         }
+
     }
 
     public open() {
