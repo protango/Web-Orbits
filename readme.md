@@ -1,5 +1,8 @@
 # Web-Orbits #
-Is a 3D, interactive N-body simulation that runs in web browsers.
+A 3D, interactive N-body simulation that runs in web browsers. This program leverages GPU acceleration through WebGL (for both graphics and computation) to deliver ultra fast performance! Runs best on computers with a discreet GPU.
+
+[Live demo is available here](https://protango.github.io/Web-Orbits/)
+
 
 ## Quick Start ##
 ### Prerequisites ###
@@ -14,7 +17,7 @@ Is a 3D, interactive N-body simulation that runs in web browsers.
 1.  Open your browser to localhost:3000
 
 ### Development ###
-Open another terminal instance and run `gulp watch`. This will watch the interface files for changes and recompile on the fly.
+Open another terminal instance and run `npm run watch`. This will watch the interface files for changes and recompile on the fly.
 
 ## Troubleshooting ##
 If you encounter this error on Windows: `Error: Node Sass does not yet support your current environment: Windows 64-bit with Unsupported runtime` when performing the `npm run build` step, run the following command to rebuild node-sass: `npm rebuild node-sass`. Ensure you either have Visual Studio or windows-build-tools installed when doing this. 
