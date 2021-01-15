@@ -86,6 +86,8 @@ class Simulation {
         this.camera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 60, Vector3.Zero(), scene);
         this.camera.attachControl(this.elem, true);
         this.camera.maxZ = 1e5; //This cana cause picking to fail.
+        this.camera.minZ = 0.1;
+        this.camera.wheelDeltaPercentage = 0.01;
 
         // materials
         function createMaterial(name: string, src: string, specularColor: Color3 = null, emissiveColor: Color3 = null) {
@@ -127,14 +129,14 @@ class Simulation {
         // Register event handlers
         scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
-                case BABYLON.PointerEventTypes.POINTERDOWN:
+                case PointerEventTypes.POINTERDOWN:
                     this.pointerDownHandler(pointerInfo.event as PointerEvent, pointerInfo.pickInfo, pointerInfo.type);
                     break;
             }
         });
 
         //Skybox
-        this.skyBox = Mesh.CreateBox("BackgroundSkybox", 1e5, scene, undefined, BABYLON.Mesh.BACKSIDE);
+        this.skyBox = Mesh.CreateBox("BackgroundSkybox", 1e5, scene, undefined, Mesh.BACKSIDE);
     
         // Create and tweak the background material.
         var backgroundMaterial = new BackgroundMaterial("backgroundMaterial", scene);
@@ -255,8 +257,7 @@ class Simulation {
             } else {
                 this.camera.setTarget(b.position);
             }
-            this.camera.radius = b.diameter * 5;
-            this.camera.wheelPrecision = 10/b.diameter;
+            this.camera.radius = b.diameter * 7.5;
         } else {
             this.camera.setTarget(Vector3.Zero());
             this.camera.radius = 5;
