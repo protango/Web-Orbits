@@ -22,6 +22,8 @@ export default class SimulationPropertiesWindow extends InfoWindow {
                     <input type="checkbox" id="skybox" checked />
                     <label for="skybox">Enable background</label>
                     <h1 class="subSection">Graphics</h1>
+                    <input type="checkbox" id="gpuacceleration" checked />
+                    <label for="gpuacceleration">Enable GPU Acceleration</label>
                     <div style="margin-top: 5px;">
                         <label for="renderModeSelect">Render Mode:</label>
                         <select id="renderModeSelect" class="wholeLine">
@@ -31,11 +33,12 @@ export default class SimulationPropertiesWindow extends InfoWindow {
                     </div>
                 </form>
             </div>`);
-            this.resize(235,197);
+            this.resize(235,219);
         let showAxesCheck = this.elem.querySelector("#showAxes") as HTMLInputElement;
         let globalLightCheck = this.elem.querySelector("#globalLight") as HTMLInputElement;
         let skyBoxCheck = this.elem.querySelector("#skybox") as HTMLInputElement;
         let renderModeSelect = this.elem.querySelector("#renderModeSelect") as HTMLSelectElement;
+        let gpuaccelerationCheck = this.elem.querySelector("#gpuacceleration") as HTMLInputElement;
         showAxesCheck.onchange = () => {
             if (showAxesCheck.checked) this.simulation.showAxes(100);
             else this.simulation.hideAxes();
@@ -49,6 +52,9 @@ export default class SimulationPropertiesWindow extends InfoWindow {
         }
         skyBoxCheck.onchange = () => {
             this.simulation.skyBox.setEnabled(skyBoxCheck.checked);
+        }
+        gpuaccelerationCheck.onchange = () => {
+            this.simulation.forceMode = gpuaccelerationCheck.checked ? null : "CPU";
         }
     }
 
